@@ -28,7 +28,8 @@ fun SelectPaymentScreen(
     productName: String,
     productPrice: String,
     onNavigateBack: () -> Unit,
-    onNavigateToSurvey: () -> Unit
+    onNavigateToSurvey: () -> Unit,
+    onNavigateToTransferProof: () -> Unit // <-- AGREGADO
 ) {
     val backgroundColor = Color(0xFF0F172A)
     val cardColor = Color(0xFF1E293B)
@@ -103,13 +104,13 @@ fun SelectPaymentScreen(
             icon = Icons.Default.QrCodeScanner,
             greenColor = greenColor,
             cardColor = cardColor,
-            onClick = { }
+            onClick = { onNavigateToTransferProof() }
         )
 
         Spacer(modifier = Modifier.weight(1f))
 
         Row(modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "🛡️ Transacción segura • FlowPay v2.4", fontSize = 12.sp, color = Color.DarkGray)
+            Text(text = "🛡️ Transacción segura • FlowPay ", fontSize = 12.sp, color = Color.DarkGray)
         }
     }
 }

@@ -106,7 +106,6 @@ class MainActivity : ComponentActivity() {
                                 onNavigateBack = { navController.popBackStack() },
                                 onNavigateToSurvey = {
                                     val price = productPrice.toDoubleOrNull() ?: 0.0
-
                                     val estimatedInvestment = if (productName == "Hot Cakes") 10.0 else 12.0
 
                                     totalSalesToday += price
@@ -126,6 +125,45 @@ class MainActivity : ComponentActivity() {
                                     } else {
                                         historyRecords.add(0, DailyRecord(todayStr, price, estimatedInvestment, price - estimatedInvestment))
                                     }
+
+                                    navController.navigate("survey")
+                                },
+
+                                onNavigateToTransferProof = {
+                                    navController.navigate("transfer_proof/$productName/$productPrice")
+                                }
+                            )
+                        }
+
+                        composable(route = "transfer_proof/{productName}/{productPrice}") { backStackEntry ->
+                            val productName = backStackEntry.arguments?.getString("productName") ?: "Producto"
+                            val productPrice = backStackEntry.arguments?.getString("productPrice") ?: "0.00"
+
+                            TransferProofScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onProofValidated = {
+
+                                    val price = productPrice.toDoubleOrNull() ?: 0.0
+                                    val estimatedInvestment = if (productName == "Hot Cakes") 10.0 else 12.0
+
+                                    totalSalesToday += price
+                                    totalInvestmentToday += estimatedInvestment
+
+                                    val todayStr = SimpleDateFormat("dd 'de' MMMM", Locale("es", "MX")).format(Date())
+                                    val existingIndex = historyRecords.indexOfFirst { it.date == todayStr }
+
+                                    if (existingIndex != -1) {
+                                        val oldRecord = historyRecords[existingIndex]
+                                        historyRecords[existingIndex] = DailyRecord(
+                                            date = todayStr,
+                                            sales = oldRecord.sales + price,
+                                            investment = oldRecord.investment + estimatedInvestment,
+                                            profit = (oldRecord.sales + price) - (oldRecord.investment + estimatedInvestment)
+                                        )
+                                    } else {
+                                        historyRecords.add(0, DailyRecord(todayStr, price, estimatedInvestment, price - estimatedInvestment))
+                                    }
+
 
                                     navController.navigate("survey")
                                 }

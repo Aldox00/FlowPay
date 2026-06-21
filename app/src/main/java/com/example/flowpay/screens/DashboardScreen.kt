@@ -38,7 +38,6 @@ fun DashboardScreen(
 
     Scaffold(
         bottomBar = {
-            // BARRA DE NAVEGACIÓN INFERIOR (Categorías)
             Surface(
                 color = Color(0xFF0B1222),
                 modifier = Modifier
