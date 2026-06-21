@@ -25,7 +25,6 @@ fun FlowPayTextField(
     isPassword: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
-    // Estado local para controlar si la contraseña se muestra en texto plano o con puntitos
     var passwordVisible by remember { mutableStateOf(false) }
 
     OutlinedTextField(
@@ -34,10 +33,8 @@ fun FlowPayTextField(
         placeholder = { Text(text = label, color = Color(0x99FFFFFF)) },
         leadingIcon = { Icon(imageVector = leadingIcon, contentDescription = null, tint = Color(0xFF1DB954)) },
 
-        // 👇 Si es contraseña y 'passwordVisible' es true, muestra el texto real; si no, pone puntitos
         visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
 
-        // 👇 Agregamos el ícono del ojito al final (Trailing Icon) SOLO si el campo es de contraseña
         trailingIcon = {
             if (isPassword) {
                 val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff

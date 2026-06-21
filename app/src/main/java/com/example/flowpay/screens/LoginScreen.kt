@@ -43,7 +43,6 @@ fun LoginScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Imagen de fondo completa
         Image(
             painter = painterResource(id = R.drawable.bg_flowpay),
             contentDescription = null,
@@ -51,7 +50,6 @@ fun LoginScreen(
             contentScale = ContentScale.Crop
         )
 
-        // Contenido scrollable centrado para que quepa todo el diseño de Figma
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -62,18 +60,15 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            // 1. Logotipo e imagotipo superior de FlowPay (Figma)
             Box(
                 modifier = Modifier
                     .size(80.dp)
                     .background(Color(0xFF0F6E36), shape = RoundedCornerShape(18.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                // Aquí usamos el icono launcher o si tienes el logo oficial, cambias el id
-                // Cambia esto que tienes actualmente:
-                // ¡Déjalo así!
+
                 Image(
-                    painter = painterResource(id = R.drawable.logo_flowpay), // <-- El nombre exacto de tu archivo azul
+                    painter = painterResource(id = R.drawable.logo_flowpay),
                     contentDescription = "Logo FlowPay",
                     modifier = Modifier.size(70.dp)
                 )
@@ -96,17 +91,16 @@ fun LoginScreen(
                 modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
             )
 
-            // 2. Tarjeta translúcida estilo cristal (Glassmorphism)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        color = Color(0x4D112233), // Fondo oscuro semi-transparente
+                        color = Color(0x4D112233),
                         shape = RoundedCornerShape(24.dp)
                     )
                     .border(
                         width = 1.dp,
-                        color = Color(0x33FFFFFF), // Borde brillante sutil
+                        color = Color(0x33FFFFFF),
                         shape = RoundedCornerShape(24.dp)
                     )
                     .padding(24.dp),
@@ -158,7 +152,7 @@ fun LoginScreen(
                     modifier = Modifier
                         .align(Alignment.End)
                         .padding(bottom = 24.dp)
-                        .clickable { onNavigateToForgotPassword() } // <-- PONER ESTO AQUÍ
+                        .clickable { onNavigateToForgotPassword() }
                 )
 
                 Button(

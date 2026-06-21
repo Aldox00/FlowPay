@@ -37,8 +37,7 @@ fun ForgotPasswordScreen(onNavigateBack: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // 👇 SOLUCIÓN AQUÍ: Cambiado a R.drawable.login para usar tu fondo real y evitar el crash
-        // 👇 Cambia 'login' por 'bg_flowpay' para solucionar el error
+
         Image(
             painter = painterResource(id = R.drawable.bg_flowpay),
             contentDescription = null,
@@ -46,7 +45,6 @@ fun ForgotPasswordScreen(onNavigateBack: () -> Unit) {
             contentScale = ContentScale.Crop
         )
 
-        // Barra Superior con Botón Regresar e Identificador de App
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -61,7 +59,7 @@ fun ForgotPasswordScreen(onNavigateBack: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.ArrowBackIosNew,
                     contentDescription = "Regresar",
-                    tint = Color(0xFF1DB954) // Verde Figma
+                    tint = Color(0xFF1DB954)
                 )
             }
 
@@ -72,20 +70,19 @@ fun ForgotPasswordScreen(onNavigateBack: () -> Unit) {
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1DB954),
-                modifier = Modifier.padding(end = 40.dp) // Compensa el botón para centrarlo
+                modifier = Modifier.padding(end = 40.dp)
             )
 
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        // Tarjeta flotante centrada estilo Cristal Oscuro
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .align(Alignment.Center)
                 .background(
-                    color = Color(0xED111A2E), // Tono oscuro profundo de tu captura
+                    color = Color(0xED111A2E),
                     shape = RoundedCornerShape(24.dp)
                 )
                 .border(
@@ -96,7 +93,6 @@ fun ForgotPasswordScreen(onNavigateBack: () -> Unit) {
                 .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Icono Circular Verde de Reinicio/Candado
             Box(
                 modifier = Modifier
                     .size(65.dp)
@@ -129,7 +125,6 @@ fun ForgotPasswordScreen(onNavigateBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Campo de Email
             Text(
                 text = "CORREO ELECTRÓNICO",
                 color = Color.LightGray,
@@ -149,7 +144,6 @@ fun ForgotPasswordScreen(onNavigateBack: () -> Unit) {
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // Botón Verde con la Flecha
             Button(
                 onClick = {
                     if (email.isNotBlank() && email.contains("@") && email.contains(".")) {
@@ -175,7 +169,6 @@ fun ForgotPasswordScreen(onNavigateBack: () -> Unit) {
             }
         }
 
-        // Enlace inferior para regresar
         Row(
             modifier = Modifier
                 .fillMaxWidth()

@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun DashboardScreen() {
-    // Colores basados en tu Figma oscuro premium
     val backgroundColor = Color(0xFF0F172A)
     val cardColor = Color(0xFF1E293B)
     val greenColor = Color(0xFF1DB954)
@@ -32,7 +31,6 @@ fun DashboardScreen() {
             .statusBarsPadding()
             .padding(horizontal = 20.dp)
     ) {
-        // Encabezado: Nombre de la app y la campana de notificaciones
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -55,7 +53,6 @@ fun DashboardScreen() {
             }
         }
 
-        // Mensaje de Bienvenida
         Text(
             text = "Hola, Estudiante 👋",
             fontSize = 24.sp,
@@ -69,7 +66,6 @@ fun DashboardScreen() {
             modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
         )
 
-        // 1. Bloque Grande: Vendido Hoy
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -80,16 +76,14 @@ fun DashboardScreen() {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(text = "VENDIDO HOY", fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "$0.00", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Color.White) // <-- Cambiado a 0.00
+                Text(text = "$0.00", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
 
-// 2. Bloques Medianos en Fila: Inversión y Ganancia Neta
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Tarjeta de Inversión
             Card(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp),
@@ -98,11 +92,10 @@ fun DashboardScreen() {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = "Inversión", fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "$0.00", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White) // <-- Cambiado a 0.00
+                    Text(text = "$0.00", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
 
-            // Tarjeta de Ganancia Neta con contorno verde brillante
             Card(
                 modifier = Modifier
                     .weight(1f)
@@ -120,14 +113,13 @@ fun DashboardScreen() {
                         Text(text = "📈", fontSize = 12.sp)
                     }
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "$0.00", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = greenColor) // <-- Cambiado a 0.00
+                    Text(text = "$0.00", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = greenColor)
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 3. Botón Registrar Venta Grande
         Button(
             onClick = { },
             modifier = Modifier

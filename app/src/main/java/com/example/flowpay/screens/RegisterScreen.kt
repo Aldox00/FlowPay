@@ -45,7 +45,6 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Imagen de fondo completa
         Image(
             painter = painterResource(id = R.drawable.bg_flowpay),
             contentDescription = null,
@@ -53,7 +52,6 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
             contentScale = ContentScale.Crop
         )
 
-        // Botón superior izquierdo para regresar al Login
         IconButton(
             onClick = { onAccountCreated("", "") },
             modifier = Modifier
@@ -68,7 +66,6 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
             )
         }
 
-        // Tarjeta oscura translúcida scrollable
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -88,7 +85,6 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // 👇 AQUÍ SE AGREGA TU LOGO DE FIGMA EN MINÚSCULAS
             Image(
                 painter = painterResource(id = R.drawable.logo_flowpay),
                 contentDescription = "Logo FlowPay",
@@ -113,7 +109,6 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            // Campo: Nombre Completo
             Text(text = "Nombre Completo", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
                 value = fullName,
@@ -128,7 +123,6 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            // Campo: Correo Electrónico
             Text(text = "Correo Electrónico", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
                 value = email,
@@ -144,7 +138,6 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            // Campo: Contraseña
             Text(text = "Contraseña", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
                 value = password,
@@ -160,7 +153,6 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            // Campo: Confirmar Contraseña
             Text(text = "Confirmar Contraseña", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
                 value = confirmPassword,
@@ -176,7 +168,6 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            // Botón Registrarme
             Button(
                 onClick = {
                     if (fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {

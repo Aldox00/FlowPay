@@ -33,13 +33,11 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(navController = navController, startDestination = "login") {
 
-                        // 1. PANTALLA: LOGIN
                         composable("login") {
                             LoginScreen(
                                 registeredEmail = registeredEmail,
                                 registeredPassword = registeredPassword,
                                 onLoginSuccess = {
-                                    // Al presionar Iniciar Sesión, va directo al Dashboard principal
                                     navController.navigate("dashboard") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -49,28 +47,23 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // 2. PANTALLA: REGISTRO (CREAR CUENTA)
                         composable("register") {
                             RegisterScreen(
                                 onAccountCreated = { email, password ->
-                                    // Guardamos las credenciales temporalmente
                                     registeredEmail = email
                                     registeredPassword = password
 
-                                    // 👇 ¡CORREGIDO! Al presionar Registrarme, cerramos la vista y regresamos al LOGIN
                                     navController.popBackStack()
                                 }
                             )
                         }
 
-                        // 3. PANTALLA: RECUPERAR CONTRASEÑA
                         composable("forgot_password") {
                             ForgotPasswordScreen(
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
 
-                        // 4. PANTALLA: DASHBOARD PRINCIPAL
                         composable("dashboard") {
                             DashboardScreen()
                         }
