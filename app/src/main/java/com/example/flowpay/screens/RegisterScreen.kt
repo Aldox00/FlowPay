@@ -33,7 +33,7 @@ import com.example.flowpay.R
 import com.example.flowpay.components.FlowPayTextField
 
 @Composable
-fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
+fun RegisterScreen(onAccountCreated: (String, String, String) -> Unit) {
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -53,7 +53,7 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
         )
 
         IconButton(
-            onClick = { onAccountCreated("", "") },
+            onClick = { onAccountCreated("", "", "") },
             modifier = Modifier
                 .statusBarsPadding()
                 .padding(start = 16.dp, top = 16.dp)
@@ -174,7 +174,7 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
                         if (password.length >= 8) {
                             if (password == confirmPassword) {
                                 Toast.makeText(context, "Cuenta creada con éxito", Toast.LENGTH_SHORT).show()
-                                onAccountCreated(email, password)
+                                onAccountCreated(fullName, email, password)
                             } else {
                                 Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
                             }
@@ -206,7 +206,7 @@ fun RegisterScreen(onAccountCreated: (String, String) -> Unit) {
                     color = Color(0xFF1DB954),
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
-                    modifier = Modifier.clickable { onAccountCreated("", "") }
+                    modifier = Modifier.clickable { onAccountCreated("", "", "") }
                 )
             }
         }
