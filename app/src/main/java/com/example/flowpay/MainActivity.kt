@@ -1,5 +1,6 @@
 package com.example.flowpay
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,6 +19,7 @@ import java.util.Date
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+    @SuppressLint("UnrememberedMutableState")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -32,8 +34,8 @@ class MainActivity : ComponentActivity() {
                     var registeredEmail by remember { mutableStateOf("") }
                     var registeredPassword by remember { mutableStateOf("") }
 
-                    var totalSalesToday by remember { mutableStateOf(0.0) }
-                    var totalInvestmentToday by remember { mutableStateOf(0.0) }
+                    var totalSalesToday by remember { mutableDoubleStateOf(0.0) }
+                    var totalInvestmentToday by remember { mutableDoubleStateOf(0.0) }
                     val totalProfitToday by derivedStateOf { totalSalesToday - totalInvestmentToday }
 
                     val historyRecords = remember {
@@ -44,19 +46,12 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    NavHost(navController = navController, startDestination = "login") {
+                    NavHost(navController = navController, startDestination = "landing") {
 
-                        composable("login") {
-                            LoginScreen(
-                                registeredEmail = registeredEmail,
-                                registeredPassword = registeredPassword,
-                                onLoginSuccess = {
-                                    navController.navigate("dashboard") {
-                                        popUpTo("login") { inclusive = true }
-                                    }
-                                },
-                                onNavigateToRegister = { navController.navigate("register") },
-                                onNavigateToForgotPassword = { navController.navigate("forgot_password") }
+                        composable("landing") {
+                            LandingScreen(
+                                onNavigateToLogin = { navController.navigate("login") },
+                                onNavigateToRegister = { navController.navigate("register") }
                             )
                         }
 
@@ -66,7 +61,35 @@ class MainActivity : ComponentActivity() {
                                     if (name.isNotBlank()) registeredName = name
                                     registeredEmail = email
                                     registeredPassword = password
-                                    navController.popBackStack()
+
+                                    navController.navigate("login") {
+                                        popUpTo("landing")
+                                    }
+                                }
+                            )
+                        }
+
+                        composable("login") {
+                            LoginScreen(
+                                registeredEmail = registeredEmail,
+                                registeredPassword = registeredPassword,
+                                onLoginSuccess = {
+                                    navController.navigate("initial_setup") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToRegister = { navController.navigate("register") },
+                                onNavigateToForgotPassword = { navController.navigate("forgot_password") }
+                            )
+                        }
+
+                        composable("initial_setup") {
+                            InitialSetupScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onContinue = { p1Name, p1Price, p2Name, p2Price ->
+                                    navController.navigate("dashboard") {
+                                        popUpTo("initial_setup") { inclusive = true }
+                                    }
                                 }
                             )
                         }
