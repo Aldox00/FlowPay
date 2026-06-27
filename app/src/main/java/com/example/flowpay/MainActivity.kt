@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog // <--- IMPORTANTE PARA EL MODAL FLOTANTE
 import androidx.navigation.compose.rememberNavController
 import com.example.flowpay.screens.*
 import com.example.flowpay.ui.theme.FlowPayTheme
@@ -34,6 +35,9 @@ class MainActivity : ComponentActivity() {
                     var registeredEmail by remember { mutableStateOf("") }
                     var registeredPassword by remember { mutableStateOf("") }
 
+                    // BANDERA LÓGICA: Simulamos si el usuario ya configuró sus productos
+                    var hasCompletedSetup by remember { mutableStateOf(false) }
+
                     var totalSalesToday by remember { mutableDoubleStateOf(0.0) }
                     var totalInvestmentToday by remember { mutableDoubleStateOf(0.0) }
                     val totalProfitToday by derivedStateOf { totalSalesToday - totalInvestmentToday }
@@ -48,6 +52,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(navController = navController, startDestination = "landing") {
 
+                        // 1. LANDING
                         composable("landing") {
                             LandingScreen(
                                 onNavigateToLogin = { navController.navigate("login") },
@@ -55,6 +60,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // 2. REGISTRO
                         composable("register") {
                             RegisterScreen(
                                 onAccountCreated = { name, email, password ->
@@ -69,13 +75,22 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // 3. LOGIN (Con bifurcación inteligente)
                         composable("login") {
                             LoginScreen(
                                 registeredEmail = registeredEmail,
                                 registeredPassword = registeredPassword,
                                 onLoginSuccess = {
-                                    navController.navigate("initial_setup") {
-                                        popUpTo("login") { inclusive = true }
+                                    if (hasCompletedSetup) {
+                                        // Usuario recurrente: Va directo a preguntar qué venderá hoy
+                                        navController.navigate("active_products") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    } else {
+                                        // Usuario nuevo: Va a configurar sus productos
+                                        navController.navigate("initial_setup") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
                                     }
                                 },
                                 onNavigateToRegister = { navController.navigate("register") },
@@ -83,12 +98,49 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // 4. CONFIGURACIÓN INICIAL (Solo se ve una vez)
                         composable("initial_setup") {
                             InitialSetupScreen(
                                 onNavigateBack = { navController.popBackStack() },
                                 onContinue = { p1Name, p1Price, p2Name, p2Price ->
-                                    navController.navigate("dashboard") {
+                                    // Marcamos que ya configuró sus productos
+                                    hasCompletedSetup = true
+
+                                    // Lo mandamos al inicio de su jornada diaria
+                                    navController.navigate("active_products") {
                                         popUpTo("initial_setup") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
+                        // 5. PRODUCTOS ACTIVOS ("¿Qué vas a vender hoy?")
+                        composable("active_products") {
+                            ActiveProductsScreen(
+                                onNavigateBack = {
+                                    // Si da atrás, lo regresamos al Login
+                                    navController.navigate("login") {
+                                        popUpTo(0)
+                                    }
+                                },
+                                onContinue = { selectedProducts ->
+                                    // Abre la ventana flotante de inversión
+                                    navController.navigate("investment_modal")
+                                }
+                            )
+                        }
+
+                        // 6. MODAL DE INVERSIÓN (Flotante)
+                        dialog("investment_modal") {
+                            InvestmentModalScreen(
+                                onDismiss = { navController.popBackStack() },
+                                onSaveAndStart = { investmentAmount ->
+                                    // Sumamos lo que invirtió al total del día
+                                    totalInvestmentToday += investmentAmount
+
+                                    // Nos vamos al Dashboard a empezar a vender
+                                    navController.navigate("dashboard") {
+                                        popUpTo("active_products") { inclusive = true }
                                     }
                                 }
                             )
