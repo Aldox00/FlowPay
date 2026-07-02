@@ -28,8 +28,9 @@ fun SelectPaymentScreen(
     productName: String,
     productPrice: String,
     onNavigateBack: () -> Unit,
-    onNavigateToSurvey: () -> Unit,
-    onNavigateToTransferProof: () -> Unit // <-- AGREGADO
+    onCashSelected: () -> Unit,
+    onNavigateToTransferProof: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val backgroundColor = Color(0xFF0F172A)
     val cardColor = Color(0xFF1E293B)
@@ -93,7 +94,7 @@ fun SelectPaymentScreen(
             icon = Icons.Default.Payments,
             greenColor = greenColor,
             cardColor = cardColor,
-            onClick = { onNavigateToSurvey() }
+            onClick = { onCashSelected() }
         )
 
         Spacer(modifier = Modifier.height(16.dp))

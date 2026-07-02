@@ -24,8 +24,10 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun RegisterSaleScreen(
+    products: List<com.example.flowpay.Product>,
     onNavigateBack: () -> Unit,
-    onNavigateToSelectPayment: (String, String) -> Unit
+    onNavigateToSelectPayment: (String, String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val backgroundColor = Color(0xFF0F172A)
     val cardColor = Color(0xFF1E293B)

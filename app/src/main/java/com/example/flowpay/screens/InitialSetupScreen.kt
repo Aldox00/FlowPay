@@ -304,7 +304,6 @@ fun ProductCard(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Card Product Identifier
             Text(
                 text = label,
                 color = labelColor,
@@ -313,7 +312,6 @@ fun ProductCard(
                 letterSpacing = 0.5.sp
             )
 
-            // Name Field Block
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -353,7 +351,6 @@ fun ProductCard(
                 )
             }
 
-            // Price Field Block
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()

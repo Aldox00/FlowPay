@@ -1,5 +1,6 @@
 package com.example.flowpay.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,14 +24,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.flowpay.SaleRecord
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun DashboardScreen(
     userName: String,
     salesToday: Double,
     investmentToday: Double,
     profitToday: Double,
-    onNavigateToRegisterSale: () -> Unit
+    recentSales: List<SaleRecord>,
+    onNavigateToRegisterSale: () -> Unit,
+    onNavigateToCloseDay: () -> Unit,
+    onNavigateToProducts: () -> Unit,
+    onNavigateToHistory: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val backgroundColor = Color(0xFF0F172A)
     val cardColor = Color(0xFF1E293B)
@@ -53,7 +62,7 @@ fun DashboardScreen(
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { }
+                        modifier = Modifier.clickable { onNavigateToProducts() }
                     ) {
                         Icon(imageVector = Icons.Default.GridView, contentDescription = null, tint = greenColor)
                         Spacer(modifier = Modifier.height(4.dp))
@@ -62,7 +71,7 @@ fun DashboardScreen(
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { }
+                        modifier = Modifier.clickable { onNavigateToProducts() }
                     ) {
                         Icon(imageVector = Icons.Default.Inventory2, contentDescription = null, tint = Color.Gray)
                         Spacer(modifier = Modifier.height(4.dp))
@@ -71,7 +80,7 @@ fun DashboardScreen(
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { }
+                        modifier = Modifier.clickable { onNavigateToProducts() }
                     ) {
                         Icon(imageVector = Icons.Default.History, contentDescription = null, tint = Color.Gray)
                         Spacer(modifier = Modifier.height(4.dp))
@@ -80,11 +89,12 @@ fun DashboardScreen(
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { }
+                        modifier = Modifier.clickable { onNavigateToProducts() }
                     ) {
                         Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = Color.Gray)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(text = "Perfil", fontSize = 11.sp, color = Color.Gray)
+
                     }
                 }
             }

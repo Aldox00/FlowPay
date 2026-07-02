@@ -36,7 +36,6 @@ fun InvestmentModalScreen(
 
     var investmentValue by remember { mutableStateOf("") }
 
-    // Dialog crea la ventana flotante con fondo oscurecido
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false)
@@ -53,7 +52,6 @@ fun InvestmentModalScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Ícono superior
                 Box(
                     modifier = Modifier
                         .size(56.dp)
@@ -69,7 +67,6 @@ fun InvestmentModalScreen(
                     )
                 }
 
-                // Títulos
                 Text(
                     text = "¿Cuánto invertiste hoy?",
                     color = whiteText,
@@ -88,7 +85,6 @@ fun InvestmentModalScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Input de Inversión
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -131,7 +127,6 @@ fun InvestmentModalScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Botón Principal
                 val isButtonEnabled = investmentValue.isNotBlank()
                 Button(
                     onClick = {

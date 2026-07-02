@@ -33,12 +33,20 @@ import com.example.flowpay.R
 import com.example.flowpay.components.FlowPayTextField
 
 @Composable
-fun RegisterScreen(onAccountCreated: (String, String, String) -> Unit) {
-    var fullName by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-
+fun RegisterScreen(
+    initialName: String = "",
+    initialEmail: String = "",
+    initialPassword: String = "",
+    initialConfirmPassword: String = "",
+    initialPrivacyAccepted: Boolean = false,
+    onNameChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onConfirmPasswordChange: (String) -> Unit,
+    onPrivacyAcceptedChange: (Boolean) -> Unit,
+    onAccountCreated: (String, String, String) -> Unit,
+    onPrivacyClick: () -> Unit
+) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
@@ -111,10 +119,10 @@ fun RegisterScreen(onAccountCreated: (String, String, String) -> Unit) {
 
             Text(text = "Nombre Completo", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
-                value = fullName,
+                value = initialName,
                 onValueChange = { input ->
                     if (input.length <= 50 && input.all { it.isLetter() || it.isWhitespace() }) {
-                        fullName = input
+                        onNameChange(input)
                     }
                 },
                 label = "Ej. Juan Pérez",
@@ -125,11 +133,11 @@ fun RegisterScreen(onAccountCreated: (String, String, String) -> Unit) {
 
             Text(text = "Correo Electrónico", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
-                value = email,
+                value = initialEmail,
                 onValueChange = { input ->
                     val isValidChar = input.all { it.isLetterOrDigit() || it == '@' || it == '.' || it == '_' || it == '-' }
                     if (input.length <= 40 && isValidChar) {
-                        email = input
+                        onEmailChange(input)
                     }
                 },
                 label = "correo@ejemplo.com",
@@ -140,10 +148,10 @@ fun RegisterScreen(onAccountCreated: (String, String, String) -> Unit) {
 
             Text(text = "Contraseña", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
-                value = password,
+                value = initialPassword,
                 onValueChange = { input ->
                     if (input.length <= 20 && input.all { it.isLetterOrDigit() }) {
-                        password = input
+                        onPasswordChange(input)
                     }
                 },
                 label = "Mínimo 8 caracteres",
@@ -155,31 +163,67 @@ fun RegisterScreen(onAccountCreated: (String, String, String) -> Unit) {
 
             Text(text = "Confirmar Contraseña", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
-                value = confirmPassword,
+                value = initialConfirmPassword,
                 onValueChange = { input ->
                     if (input.length <= 20 && input.all { it.isLetterOrDigit() }) {
-                        confirmPassword = input
+                        onConfirmPasswordChange(input)
                     }
                 },
                 label = "Repite tu contraseña",
                 leadingIcon = Icons.Default.Lock,
                 isPassword = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                modifier = Modifier.padding(bottom = 20.dp)
+                modifier = Modifier.padding(bottom = 16.dp)
             )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = initialPrivacyAccepted,
+                    onCheckedChange = { onPrivacyAcceptedChange(it) },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = Color(0xFF1DB954),
+                        uncheckedColor = Color.LightGray,
+                        checkmarkColor = Color.White
+                    )
+                )
+
+                Text(
+                    text = "He leído y acepto el ",
+                    color = Color.LightGray,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+
+                Text(
+                    text = "Aviso de Privacidad.",
+                    color = Color(0xFF1DB954),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { onPrivacyClick() }
+                )
+            }
 
             Button(
                 onClick = {
-                    if (fullName.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {
-                        if (password.length >= 8) {
-                            if (password == confirmPassword) {
-                                Toast.makeText(context, "Cuenta creada con éxito", Toast.LENGTH_SHORT).show()
-                                onAccountCreated(fullName, email, password)
+                    if (initialName.isNotBlank() && initialEmail.isNotBlank() && initialPassword.isNotBlank()) {
+                        if (initialPrivacyAccepted) {
+                            if (initialPassword.length >= 8) {
+                                if (initialPassword == initialConfirmPassword) {
+                                    Toast.makeText(context, "Cuenta creada con éxito", Toast.LENGTH_SHORT).show()
+                                    onAccountCreated(initialName, initialEmail, initialPassword)
+                                } else {
+                                    Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                                }
                             } else {
-                                Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "La contraseña debe tener mínimo 8 caracteres", Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            Toast.makeText(context, "La contraseña debe tener mínimo 8 caracteres", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Debes aceptar el Aviso de Privacidad", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         Toast.makeText(context, "Por favor rellena todos los campos", Toast.LENGTH_SHORT).show()

@@ -1,244 +1,119 @@
 package com.example.flowpay.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flowpay.DailyRecord
 
 @Composable
 fun HistoryScreen(
-    records: List<DailyRecord>,
-    onNavigateToDashboard: () -> Unit
+    records: List<com.example.flowpay.DailyRecord>,
+    onNavigateToDashboard: () -> Unit,
+    onNavigateToSurvey: (String) -> Unit,
+    onNavigateToDayDetail: (String, String, String, String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val backgroundColor = Color(0xFF0F172A)
-    val cardColor = Color(0xFF1E293B)
-    val greenColor = Color(0xFF1DB954)
-    val inactiveGray = Color.Gray
+    var selectedFilter by remember { mutableStateOf("Día") }
+    val primaryGreen = Color(0x22, 0xC5, 0x5E)
+    val backgroundColor = Color(0x0F, 0x17, 0x2A)
+    val cardBackground = Color(0x1E, 0x29, 0x3B).copy(alpha = 0.65f)
+    val whiteText = Color(0xFF, 0xFF, 0xFF)
+    val secondaryText = Color(0xD1, 0xD5, 0xDB)
 
-    Scaffold(
-        bottomBar = {
-            Surface(
-                color = Color(0xFF0B1222),
-                modifier = Modifier.fillMaxWidth().navigationBarsPadding()
+    Box(modifier = modifier.fillMaxSize().background(backgroundColor)) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(primaryGreen.copy(alpha = 0.12f), Color.Transparent),
+                    center = Offset(size.width * 0.8f, size.height * 0.2f),
+                    radius = size.width * 0.6f
+                )
+            )
+        }
+
+        Column(modifier = Modifier.fillMaxSize().systemBarsPadding().padding(24.dp)) {
+
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp)) {
+                IconButton(onClick = onNavigateToDashboard, modifier = Modifier.offset(x = (-12).dp)) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = whiteText)
+                }
+                Text("Historial de Ventas", color = whiteText, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { onNavigateToDashboard() }.padding(8.dp)
+                listOf("Día", "Semana", "Mes").forEach { filter ->
+                    val isSelected = selectedFilter == filter
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(if (isSelected) primaryGreen else Color.White.copy(alpha = 0.1f))
+                            .clickable {
+                                if (filter == "Semana" || filter == "Mes") {
+                                    onNavigateToSurvey(filter)
+                                } else {
+                                    selectedFilter = filter
+                                }
+                            }
+                            .padding(horizontal = 20.dp, vertical = 8.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.GridView, contentDescription = null, tint = inactiveGray)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Dashboard", fontSize = 11.sp, color = inactiveGray)
+                        Text(
+                            text = filter,
+                            color = if (isSelected) Color(0x0F, 0x17, 0x2A) else Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
                     }
+                }
+            }
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { }.padding(8.dp)
-                    ) {
-                        Icon(imageVector = Icons.Default.Inventory2, contentDescription = null, tint = inactiveGray)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Productos", fontSize = 11.sp, color = inactiveGray)
-                    }
-
-                    Surface(
-                        color = greenColor,
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.height(40.dp).width(90.dp)
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(records) { record ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp)),
+                        colors = CardDefaults.cardColors(containerColor = cardBackground),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(imageVector = Icons.Default.History, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(text = "Historial", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { }.padding(8.dp)
-                    ) {
-                        Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = inactiveGray)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Perfil", fontSize = 11.sp, color = inactiveGray)
-                    }
-                }
-            }
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(backgroundColor)
-                .padding(paddingValues)
-                .statusBarsPadding()
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Text(
-                text = "FlowPay",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = greenColor,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                textAlign = TextAlign.Center
-            )
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 24.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF151F32))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 20.dp)
-                        .height(140.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    val days = listOf(
-                        "LUN" to 0.5f,
-                        "MAR" to 0.8f,
-                        "MIE" to 0.4f,
-                        "JUE" to 1.0f,
-                        "VIE" to 0.7f,
-                        "SAB" to 0.85f,
-                        "DOM" to 1.0f
-                    )
-
-                    days.forEach { (name, weight) ->
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Bottom,
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth(),
-                                contentAlignment = Alignment.BottomCenter
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(16.dp)
-                                        .fillMaxHeight(weight)
-                                        .background(
-                                            color = if (name == "DOM") greenColor else Color(0xFF24344D),
-                                            shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
-                                        )
-                                )
+                            Column {
+                                Text(text = record.date, color = whiteText, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = "Inversión: $${record.investment}", color = secondaryText, fontSize = 13.sp)
                             }
-
-                            Spacer(modifier = Modifier.height(10.dp))
-
-                            Text(
-                                text = name,
-                                fontSize = 11.sp,
-                                color = if (name == "DOM") greenColor else inactiveGray,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(text = "+$${record.sales}", color = primaryGreen, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = "Ganancia: $${record.profit}", color = primaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
-            }
-
-            Text(
-                text = "Registros Recientes",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            records.forEach { record ->
-                HistoryDayCard(
-                    date = record.date,
-                    sales = "$${String.format("%.2f", record.sales)}",
-                    investment = "$${String.format("%.2f", record.investment)}",
-                    profit = "$${String.format("%.2f", record.profit)}",
-                    cardColor = cardColor,
-                    greenColor = greenColor
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-    }
-}
-
-@Composable
-fun HistoryDayCard(
-    date: String,
-    sales: String,
-    investment: String,
-    profit: String,
-    cardColor: Color,
-    greenColor: Color
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = cardColor)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = date, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                Spacer(modifier = Modifier.height(8.dp))
-                Row {
-                    Column {
-                        Text(text = "VENTAS", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                        Text(text = sales, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    }
-                    Spacer(modifier = Modifier.width(24.dp))
-                    Column {
-                        Text(text = "INVERSIÓN", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                        Text(text = investment, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    }
-                }
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(text = "GANANCIA", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                    Text(text = profit, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = greenColor)
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color.DarkGray)
             }
         }
     }

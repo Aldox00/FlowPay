@@ -73,14 +73,12 @@ fun LandingScreen(
     onNavigateToRegister: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Styling values
     val backgroundColor = Color(0x0F, 0x17, 0x2A) // #0F172A
     val primaryGreen = Color(0x22, 0xC5, 0x5E) // #22C55E
     val whiteText = Color(0xFF, 0xFF, 0xFF) // #FFFFFF
     val secondaryText = Color(0xD1, 0xD5, 0xDB) // #D1D5DB
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    // Gyroscope / Accelerometer Sensor logic for parallax effect
     val context = LocalContext.current
     var tiltX by remember { mutableFloatStateOf(0f) }
     var tiltY by remember { mutableFloatStateOf(0f) }
@@ -149,7 +147,6 @@ fun LandingScreen(
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        // Decorative background glowing orbs with responsive multi-layered gyroscope parallax depth
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
@@ -226,7 +223,6 @@ fun LandingScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
 
-                        // AQUÍ YA ESTÁ TU LOGO REAL
                         Image(
                             painter = painterResource(id = R.drawable.logo_flowpay),
                             contentDescription = "Logo de FlowPay",
@@ -246,14 +242,12 @@ fun LandingScreen(
                 }
             }
 
-            // Hero Section with Badge, Main Title, and CTA buttons
             item {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    // Optimized for students badge
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(100.dp))
@@ -277,7 +271,6 @@ fun LandingScreen(
                         )
                     }
 
-                    // Headline Title
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(color = whiteText)) {
@@ -294,7 +287,6 @@ fun LandingScreen(
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
 
-                    // Secondary Description
                     Text(
                         text = "Registra ventas, inversiones y ganancias en un solo lugar. La herramienta definitiva para que el emprendedor universitario tome decisiones basadas en datos reales.",
                         color = secondaryText,
@@ -304,7 +296,6 @@ fun LandingScreen(
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
 
-                    // CTA Buttons (Comenzar / Saber más)
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -329,7 +320,6 @@ fun LandingScreen(
                             )
                         }
 
-                        // Glassmorphism Saber más Button
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -358,13 +348,11 @@ fun LandingScreen(
                         }
                     }
 
-                    // Social Proof (+500 students already use it)
                     Row(
                         modifier = Modifier.padding(top = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Avatar Pile (rendered dynamically)
                         Row(horizontalArrangement = Arrangement.spacedBy((-10).dp)) {
                             listOf(
                                 Color(0xFF, 0x3B, 0x82),
@@ -397,8 +385,6 @@ fun LandingScreen(
                     }
                 }
             }
-
-            // Divider and Section "Diseñado para tu ritmo"
             item {
                 Column(
                     modifier = Modifier
@@ -423,7 +409,6 @@ fun LandingScreen(
                 }
             }
 
-            // Glassmorphism Card 1: Análisis de Ganancias
             item {
                 GlassCard(
                     title = "Análisis de Ganancias",
@@ -433,7 +418,6 @@ fun LandingScreen(
                 )
             }
 
-            // Glassmorphism Card 2: Recibos Rápidos
             item {
                 GlassCard(
                     title = "Recibos Rápidos",
@@ -445,7 +429,6 @@ fun LandingScreen(
                 )
             }
 
-            // Glassmorphism Card 3: Control de Stock
             item {
                 GlassCard(
                     title = "Control de Stock",
@@ -455,7 +438,6 @@ fun LandingScreen(
                 )
             }
 
-            // Glassmorphism Card 4: Historial de Ventas with inline transaction rows
             item {
                 GlassCard(
                     title = "Historial de Ventas",
@@ -485,7 +467,6 @@ fun LandingScreen(
                 }
             }
 
-            // Bottom CTA Card
             item {
                 Box(
                     modifier = Modifier
