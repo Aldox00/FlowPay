@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -119,7 +118,6 @@ fun InitialSetupScreen(
             val width = size.width
             val height = size.height
 
-            // Top center green ambient orb
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(primaryGreen.copy(alpha = 0.12f), Color.Transparent),
@@ -143,14 +141,14 @@ fun InitialSetupScreen(
                 .systemBarsPadding()
                 .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp)
-                .padding(top = 16.dp, bottom = 32.dp),
+                .padding(top = 12.dp, bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 4.dp),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -170,7 +168,7 @@ fun InitialSetupScreen(
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     text = "Solo se muestra una vez al crear tu cuenta.",
@@ -179,8 +177,6 @@ fun InitialSetupScreen(
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Normal
                 )
-
-                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = "Configura tus productos",
@@ -198,15 +194,21 @@ fun InitialSetupScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
             ProductCard(
                 label = "PRODUCTO 1",
                 labelColor = primaryGreen,
                 nameValue = product1Name,
-                onNameChange = { product1Name = it },
+                onNameChange = { newValue ->
+                    if (newValue.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]*$"))) {
+                        product1Name = newValue
+                    }
+                },
                 priceValue = product1Price,
-                onPriceChange = { product1Price = it },
+                onPriceChange = { newValue ->
+                    if (newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                        product1Price = newValue
+                    }
+                },
                 cardBgColor = cardBackground,
                 whiteText = whiteText,
                 grayIntermediate = grayIntermediate,
@@ -219,9 +221,17 @@ fun InitialSetupScreen(
                 label = "PRODUCTO 2 (OPCIONAL)",
                 labelColor = grayIntermediate,
                 nameValue = product2Name,
-                onNameChange = { product2Name = it },
+                onNameChange = { newValue ->
+                    if (newValue.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]*$"))) {
+                        product2Name = newValue
+                    }
+                },
                 priceValue = product2Price,
-                onPriceChange = { product2Price = it },
+                onPriceChange = { newValue ->
+                    if (newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                        product2Price = newValue
+                    }
+                },
                 cardBgColor = cardBackground,
                 whiteText = whiteText,
                 grayIntermediate = grayIntermediate,
@@ -229,8 +239,6 @@ fun InitialSetupScreen(
                 placeholderName = "Ej. Café frío",
                 modifier = Modifier.testTag("product_card_2")
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
@@ -265,10 +273,6 @@ fun InitialSetupScreen(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-
         }
     }
 }
@@ -298,10 +302,10 @@ fun ProductCard(
                 color = Color(0xFF, 0xFF, 0xFF).copy(alpha = 0.05f),
                 shape = RoundedCornerShape(16.dp)
             )
-            .padding(20.dp)
+            .padding(16.dp)
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
@@ -313,7 +317,7 @@ fun ProductCard(
             )
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -327,6 +331,7 @@ fun ProductCard(
                 TextField(
                     value = nameValue,
                     onValueChange = onNameChange,
+                    singleLine = true,
                     placeholder = {
                         Text(
                             text = placeholderName,
@@ -352,7 +357,7 @@ fun ProductCard(
             }
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -366,6 +371,7 @@ fun ProductCard(
                 TextField(
                     value = priceValue,
                     onValueChange = onPriceChange,
+                    singleLine = true,
                     placeholder = {
                         Text(
                             text = "$0.00",

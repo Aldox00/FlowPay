@@ -73,10 +73,10 @@ fun LandingScreen(
     onNavigateToRegister: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = Color(0x0F, 0x17, 0x2A) // #0F172A
-    val primaryGreen = Color(0x22, 0xC5, 0x5E) // #22C55E
-    val whiteText = Color(0xFF, 0xFF, 0xFF) // #FFFFFF
-    val secondaryText = Color(0xD1, 0xD5, 0xDB) // #D1D5DB
+    val backgroundColor = Color(0x0F, 0x17, 0x2A)
+    val primaryGreen = Color(0x22, 0xC5, 0x5E)
+    val whiteText = Color(0xFF, 0xFF, 0xFF)
+    val secondaryText = Color(0xD1, 0xD5, 0xDB)
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -97,12 +97,9 @@ fun LandingScreen(
             override fun onSensorChanged(event: SensorEvent?) {
                 if (event != null) {
                     if (isRotationVector && event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
-                        // event.values[0] is X * sin(theta/2), event.values[1] is Y * sin(theta/2)
-                        // Scale rotation values for natural, subtle motion
                         tiltX = event.values[0] * 80f
                         tiltY = event.values[1] * 80f
                     } else if (!isRotationVector && event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-                        // Accelerometer fallback (normalized around gravity g ~ 9.81 m/s^2)
                         tiltX = (-event.values[0] / 9.81f) * 80f
                         tiltY = (event.values[1] / 9.81f) * 80f
                     }
@@ -155,7 +152,6 @@ fun LandingScreen(
             val width = size.width
             val height = size.height
 
-            // Orb 1: Top-Right (Primary Green) - Shifts with intermediate depth
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
@@ -425,7 +421,7 @@ fun LandingScreen(
                     icon = Icons.AutoMirrored.Filled.List,
                     iconTint = primaryGreen,
                     actionText = "Pruébalo ahora ->",
-                    onActionClick = { /* Quick receipts action */ }
+                    onActionClick = onNavigateToRegister
                 )
             }
 
@@ -434,7 +430,7 @@ fun LandingScreen(
                     title = "Control de Stock",
                     description = "Nunca te quedes sin inventario en plena jornada universitaria.",
                     icon = Icons.Default.ShoppingCart,
-                    iconTint = Color(0xEF, 0x44, 0x44) // Soft Red
+                    iconTint = Color(0xEF, 0x44, 0x44)
                 )
             }
 
@@ -551,16 +547,15 @@ fun GlassCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFF, 0xFF, 0xFF).copy(alpha = 0.03f)) // transparent white
+            .background(Color(0xFF, 0xFF, 0xFF).copy(alpha = 0.03f))
             .border(
                 width = 1.dp,
-                color = Color(0xFF, 0xFF, 0xFF).copy(alpha = 0.08f), // subtle white border
+                color = Color(0xFF, 0xFF, 0xFF).copy(alpha = 0.08f),
                 shape = RoundedCornerShape(20.dp)
             )
             .padding(20.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            // Icon Badge
             Box(
                 modifier = Modifier
                     .size(44.dp)
@@ -576,7 +571,6 @@ fun GlassCard(
                 )
             }
 
-            // Title
             Text(
                 text = title,
                 fontSize = 20.sp,
@@ -584,20 +578,18 @@ fun GlassCard(
                 color = Color.White
             )
 
-            // Description
+            //
             Text(
                 text = description,
                 fontSize = 14.sp,
-                color = Color(0xD1, 0xD5, 0xDB), // #D1D5DB
+                color = Color(0xD1, 0xD5, 0xDB),
                 lineHeight = 20.sp
             )
 
-            // Extra Content inside card if provided (e.g. transaction list)
             if (extraContent != null) {
                 extraContent()
             }
 
-            // Action Link
             if (actionText != null && onActionClick != null) {
                 Row(
                     modifier = Modifier

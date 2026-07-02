@@ -1,5 +1,7 @@
 package com.example.flowpay.screens
 
+import android.app.TimePickerDialog
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,11 +30,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Calendar
 
 @Composable
 fun ProfileScreen(
@@ -56,12 +61,30 @@ fun ProfileScreen(
     val cardBackground = Color(0x1E, 0x29, 0x3B).copy(alpha = 0.65f)
     val bottomNavBg = Color(0x0B, 0x0F, 0x19)
 
+    val context = LocalContext.current
     var notificationsEnabled by remember { mutableStateOf(true) }
+    var reminderTime by remember { mutableStateOf("02:00 PM") }
     val scrollState = rememberScrollState()
+
     val initials = userName.split(" ")
         .take(2)
         .mapNotNull { it.firstOrNull()?.uppercase() }
         .joinToString("")
+
+    val calendar = Calendar.getInstance()
+    val timePickerDialog = TimePickerDialog(
+        context,
+        { _, hourOfDay, minute ->
+            val amPm = if (hourOfDay >= 12) "PM" else "AM"
+            val hourIn12Format = if (hourOfDay % 12 == 0) 12 else hourOfDay % 12
+            val formattedMinute = String.format("%02d", minute)
+            reminderTime = "$hourIn12Format:$formattedMinute $amPm"
+            onReminderTimeClick() // Mantiene la propagación del evento original
+        },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        false
+    )
 
     Box(
         modifier = modifier
@@ -110,14 +133,19 @@ fun ProfileScreen(
                     modifier = Modifier.testTag("app_title")
                 )
 
-                Icon(
-                    imageVector = Icons.Default.NotificationsActive,
-                    contentDescription = "Notificaciones",
-                    tint = primaryGreen,
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .size(24.dp)
-                )
+                IconButton(
+                    onClick = {
+                        Toast.makeText(context, "No tienes notificaciones pendientes", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsActive,
+                        contentDescription = "Notificaciones",
+                        tint = primaryGreen,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             Column(
@@ -223,7 +251,7 @@ fun ProfileScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable(onClick = onReminderTimeClick)
+                            .clickable(enabled = notificationsEnabled) { timePickerDialog.show() }
                             .padding(horizontal = 20.dp, vertical = 18.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -235,12 +263,12 @@ fun ProfileScreen(
                             Icon(
                                 imageVector = Icons.Default.Schedule,
                                 contentDescription = null,
-                                tint = secondaryText,
+                                tint = if (notificationsEnabled) secondaryText else secondaryText.copy(alpha = 0.3f),
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
                                 text = "Hora del recordatorio",
-                                color = whiteText,
+                                color = if (notificationsEnabled) whiteText else whiteText.copy(alpha = 0.3f),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -251,8 +279,8 @@ fun ProfileScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "2:00 PM",
-                                color = primaryGreen,
+                                text = reminderTime,
+                                color = if (notificationsEnabled) primaryGreen else primaryGreen.copy(alpha = 0.3f),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -336,6 +364,42 @@ fun ProfileScreen(
                             modifier = Modifier.size(20.dp)
                         )
                     }
+
+                    HorizontalDivider(color = Color(0xFF, 0xFF, 0xFF).copy(alpha = 0.05f))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onPrivacyClick)
+                            .padding(horizontal = 20.dp, vertical = 18.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                tint = secondaryText,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                text = "Aviso de Privacidad",
+                                color = whiteText,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = secondaryText.copy(alpha = 0.5f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
 
                 Box(
@@ -380,6 +444,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .navigationBarsPadding()
                 .height(84.dp)
                 .background(bottomNavBg)
                 .border(
@@ -392,42 +457,75 @@ fun ProfileScreen(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                BottomNavItem(
+                ProfileBottomNavItem(
                     label = "Dashboard",
                     icon = Icons.Default.GridView,
                     isSelected = false,
                     onClick = onDashboardClick,
-                    modifier = Modifier.testTag("nav_dashboard")
+                    modifier = Modifier.weight(1f).testTag("nav_dashboard")
                 )
 
-                BottomNavItem(
+                ProfileBottomNavItem(
                     label = "Productos",
                     icon = Icons.Default.Inventory2,
                     isSelected = false,
                     onClick = onProductosClick,
-                    modifier = Modifier.testTag("nav_productos")
+                    modifier = Modifier.weight(1f).testTag("nav_productos")
                 )
 
-                BottomNavItem(
+                ProfileBottomNavItem(
                     label = "Historial",
                     icon = Icons.Default.History,
                     isSelected = false,
                     onClick = onHistorialClick,
-                    modifier = Modifier.testTag("nav_historial")
+                    modifier = Modifier.weight(1f).testTag("nav_historial")
                 )
 
-                BottomNavItem(
+                ProfileBottomNavItem(
                     label = "Perfil",
                     icon = Icons.Default.Person,
                     isSelected = true,
                     onClick = { },
-                    modifier = Modifier.testTag("nav_perfil")
+                    modifier = Modifier.weight(1f).testTag("nav_perfil")
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ProfileBottomNavItem(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val primaryGreen = Color(0x22, 0xC5, 0x5E)
+    val secondaryText = Color(0xD1, 0xD5, 0xDB)
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (isSelected) primaryGreen else secondaryText.copy(alpha = 0.6f),
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = label,
+                color = if (isSelected) primaryGreen else secondaryText.copy(alpha = 0.6f),
+                fontSize = 11.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                maxLines = 1
+            )
         }
     }
 }

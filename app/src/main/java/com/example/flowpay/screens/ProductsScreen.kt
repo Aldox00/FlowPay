@@ -22,9 +22,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.flowpay.Product
 
 @Composable
@@ -76,18 +78,30 @@ fun ProductsScreen(
                             modifier = Modifier.fillMaxWidth().padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(Color(0x0F, 0x17, 0x2A).copy(alpha = 0.6f)).border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(imageVector = product.icon, contentDescription = null, tint = primaryGreen, modifier = Modifier.size(22.dp))
+
+                            if (product.imageUri != null) {
+                                AsyncImage(
+                                    model = product.imageUri,
+                                    contentDescription = product.name,
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(Color(0x0F, 0x17, 0x2A).copy(alpha = 0.6f)).border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(imageVector = product.icon, contentDescription = null, tint = primaryGreen, modifier = Modifier.size(22.dp))
+                                }
                             }
 
                             Spacer(modifier = Modifier.width(16.dp))
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(text = product.name, color = whiteText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                                Text(text = "$${String.format("%.2f", product.price)}", color = primaryGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Text(text = "$${product.price}", color = primaryGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -95,16 +109,27 @@ fun ProductsScreen(
             }
         }
 
-        // Bottom Navigation Bar
         Box(
-            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(84.dp).background(bottomNavBg).border(1.dp, Color(0xFF, 0xFF, 0xFF).copy(alpha = 0.05f), RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .height(84.dp)
+                .background(bottomNavBg)
+                .border(1.dp, Color(0xFF, 0xFF, 0xFF).copy(alpha = 0.05f), RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
         ) {
-            Row(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
-                // AQUÍ CAMBIAMOS EL NOMBRE A VentaBottomNavItem
-                VentaBottomNavItem(label = "Dashboard", icon = Icons.Default.GridView, isSelected = false, onClick = onDashboardClick)
-                VentaBottomNavItem(label = "Productos", icon = Icons.Default.Inventory2, isSelected = true, onClick = { })
-                VentaBottomNavItem(label = "Historial", icon = Icons.Default.History, isSelected = false, onClick = onHistorialClick)
-                VentaBottomNavItem(label = "Perfil", icon = Icons.Default.Person, isSelected = false, onClick = onPerfilClick)
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                VentaBottomNavItem(label = "Dashboard", icon = Icons.Default.GridView, isSelected = false, onClick = onDashboardClick, modifier = Modifier.weight(1f))
+                VentaBottomNavItem(label = "Productos", icon = Icons.Default.Inventory2, isSelected = true, onClick = { }, modifier = Modifier.weight(1f))
+                VentaBottomNavItem(label = "Historial", icon = Icons.Default.History, isSelected = false, onClick = onHistorialClick, modifier = Modifier.weight(1f))
+                VentaBottomNavItem(label = "Perfil", icon = Icons.Default.Person, isSelected = false, onClick = onPerfilClick, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -114,17 +139,31 @@ fun ProductsScreen(
 private fun VentaBottomNavItem(label: String, icon: ImageVector, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val primaryGreen = Color(0x22, 0xC5, 0x5E)
     val secondaryText = Color(0xD1, 0xD5, 0xDB)
-    Box(modifier = modifier.clip(RoundedCornerShape(20.dp)).clickable(onClick = onClick).padding(vertical = 6.dp, horizontal = 12.dp), contentAlignment = Alignment.Center) {
-        if (isSelected) {
-            Row(modifier = Modifier.clip(RoundedCornerShape(50)).background(primaryGreen.copy(alpha = 0.15f)).padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(imageVector = icon, contentDescription = label, tint = primaryGreen, modifier = Modifier.size(20.dp))
-                Text(text = label, color = primaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-        } else {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Icon(imageVector = icon, contentDescription = label, tint = secondaryText.copy(alpha = 0.5f), modifier = Modifier.size(22.dp))
-                Text(text = label, color = secondaryText.copy(alpha = 0.5f), fontSize = 11.sp, fontWeight = FontWeight.Medium)
-            }
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (isSelected) primaryGreen else secondaryText.copy(alpha = 0.6f),
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = label,
+                color = if (isSelected) primaryGreen else secondaryText.copy(alpha = 0.6f),
+                fontSize = 11.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                maxLines = 1
+            )
         }
     }
 }

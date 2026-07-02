@@ -84,8 +84,7 @@ fun ActiveProductsScreen(
                         Spacer(Modifier.width(16.dp))
                         Column {
                             Text(product.name, color = whiteText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                            Text("$${String.format("%.2f", product.price)}", color = primaryGreen)
-                        }
+                            Text("$${String.format("%.2f", product.price)}", color = primaryGreen)                        }
                     }
                 }
             }

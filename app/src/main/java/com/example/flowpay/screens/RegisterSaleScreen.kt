@@ -1,130 +1,119 @@
 package com.example.flowpay.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.Cake
-import androidx.compose.material.icons.filled.BakeryDining
-import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.flowpay.Product
 
 @Composable
 fun RegisterSaleScreen(
-    products: List<com.example.flowpay.Product>,
+    products: List<Product>,
     onNavigateBack: () -> Unit,
     onNavigateToSelectPayment: (String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = Color(0xFF0F172A)
-    val cardColor = Color(0xFF1E293B)
-    val greenColor = Color(0xFF1DB954)
-    val badgeBgColor = Color(0x1A1DB954)
+    val backgroundColor = Color(0x0F, 0x17, 0x2A)
+    val primaryGreen = Color(0x22, 0xC5, 0x5E)
+    val whiteText = Color(0xFF, 0xFF, 0xFF)
+    val cardBackground = Color(0x1E, 0x29, 0x3B).copy(alpha = 0.65f)
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(backgroundColor)
-            .statusBarsPadding()
-            .padding(horizontal = 20.dp)
+            .systemBarsPadding()
     ) {
-        IconButton(
-            onClick = { onNavigateBack() },
-            modifier = Modifier.padding(top = 16.dp).size(32.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(imageVector = Icons.Default.ArrowBackIosNew, contentDescription = "Regresar", tint = greenColor)
-        }
-
-        Column(
-            modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Surface(color = badgeBgColor, shape = RoundedCornerShape(20.dp), modifier = Modifier.padding(bottom = 24.dp)) {
-                Text(text = "VENTA 1", color = greenColor, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+            IconButton(onClick = onNavigateBack) {
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = primaryGreen)
             }
-
-            Text(text = "Registrar Venta", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
-            Text(text = "Toca un producto para registrar la venta.", fontSize = 14.sp, color = Color.Gray, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 4.dp, bottom = 32.dp))
-
-            ProductSaleCard(
-                title = "Pay de queso",
-                price = "30.00",
-                icon = Icons.Default.Cake,
-                cardColor = cardColor,
-                greenColor = greenColor,
-                onVenderClick = { onNavigateToSelectPayment("Pay de queso", "30.00") }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProductSaleCard(
-                title = "Hot Cakes",
-                price = "25.00",
-                icon = Icons.Default.BakeryDining,
-                cardColor = cardColor,
-                greenColor = greenColor,
-                onVenderClick = { onNavigateToSelectPayment("Hot Cakes", "25.00") }
-            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column {
+                Box(modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(primaryGreen.copy(alpha = 0.1f)).padding(horizontal = 8.dp, vertical = 4.dp)) {
+                    Text("VENTA RÁPIDA", color = primaryGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Registrar Venta", color = whiteText, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text("Toca un producto para registrar la venta.", color = Color.Gray, fontSize = 14.sp)
+            }
         }
-    }
-}
 
-@Composable
-fun ProductSaleCard(
-    title: String,
-    price: String,
-    icon: ImageVector,
-    cardColor: Color,
-    greenColor: Color,
-    onVenderClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = cardColor)
-    ) {
-        Row(modifier = Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                Surface(color = Color(0x1AFFFFFF), shape = CircleShape, modifier = Modifier.size(52.dp)) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(imageVector = icon, contentDescription = null, tint = greenColor, modifier = Modifier.size(28.dp))
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(products) { product ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+                        .clickable {
+                            onNavigateToSelectPayment(product.name, product.price.toString())
+                        },
+                    colors = CardDefaults.cardColors(containerColor = cardBackground)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+
+                            if (product.imageUri != null) {
+                                AsyncImage(
+                                    model = product.imageUri,
+                                    contentDescription = product.name,
+                                    modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(Color(0x0F, 0x17, 0x2A).copy(alpha = 0.6f)).border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(imageVector = product.icon, contentDescription = null, tint = primaryGreen, modifier = Modifier.size(22.dp))
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Column {
+                                Text(text = product.name, color = whiteText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Text(text = "$${product.price}", color = primaryGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        Button(
+                            onClick = { onNavigateToSelectPayment(product.name, product.price.toString()) },
+                            colors = ButtonDefaults.buttonColors(containerColor = primaryGreen),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            modifier = Modifier.height(36.dp)
+                        ) {
+                            Text("Vender", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Column {
-                    Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "$$price", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = greenColor)
-                }
-            }
-
-            Button(
-                onClick = { onVenderClick() },
-                colors = ButtonDefaults.buttonColors(containerColor = greenColor),
-                shape = RoundedCornerShape(12.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.FlashOn, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Vender", fontSize = 15.sp, color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }

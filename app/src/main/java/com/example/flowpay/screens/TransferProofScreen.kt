@@ -109,6 +109,7 @@ fun TransferProofScreen(
                 )
             )
             .statusBarsPadding()
+            .navigationBarsPadding() // <--- ESTO SALVA EL BOTÓN INFERIOR
             .padding(horizontal = 24.dp)
     ) {
         IconButton(
@@ -313,15 +314,16 @@ fun TransferProofScreen(
                         Text(text = "Subir desde galería", fontSize = 15.sp, color = Color.White, fontWeight = FontWeight.Medium)
                     }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
 
         if (imageUri != null) {
             Button(
                 onClick = { onProofValidated() },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).height(50.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp) // <--- EXTRA ESPACIO AL FONDO
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = greenColor),
                 shape = RoundedCornerShape(14.dp)
             ) {

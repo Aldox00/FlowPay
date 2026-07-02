@@ -1,6 +1,7 @@
 package com.example.flowpay.screens
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,57 +46,53 @@ fun DashboardScreen(
     val backgroundColor = Color(0xFF0F172A)
     val cardColor = Color(0xFF1E293B)
     val greenColor = Color(0xFF1DB954)
+    val context = LocalContext.current
 
     Scaffold(
         bottomBar = {
             Surface(
                 color = Color(0xFF0B1222),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
+                modifier = Modifier.fillMaxWidth().navigationBarsPadding()
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { onNavigateToProducts() }
+                    Box(
+                        modifier = Modifier.weight(1f).clickable { }.padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(imageVector = Icons.Default.GridView, contentDescription = null, tint = greenColor)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Dashboard", fontSize = 11.sp, color = greenColor, fontWeight = FontWeight.Bold)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.GridView, null, tint = greenColor)
+                            Text(
+                                "Dashboard",
+                                fontSize = 11.sp,
+                                color = greenColor,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { onNavigateToProducts() }
-                    ) {
-                        Icon(imageVector = Icons.Default.Inventory2, contentDescription = null, tint = Color.Gray)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Productos", fontSize = 11.sp, color = Color.Gray)
+                    Box(modifier = Modifier.weight(1f).clickable { onNavigateToProducts() }
+                        .padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.Inventory2, null, tint = Color.Gray)
+                            Text("Productos", fontSize = 11.sp, color = Color.Gray)
+                        }
                     }
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { onNavigateToProducts() }
-                    ) {
-                        Icon(imageVector = Icons.Default.History, contentDescription = null, tint = Color.Gray)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Historial", fontSize = 11.sp, color = Color.Gray)
+                    Box(modifier = Modifier.weight(1f).clickable { onNavigateToHistory() }
+                        .padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.History, null, tint = Color.Gray)
+                            Text("Historial", fontSize = 11.sp, color = Color.Gray)
+                        }
                     }
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { onNavigateToProducts() }
-                    ) {
-                        Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = Color.Gray)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Perfil", fontSize = 11.sp, color = Color.Gray)
-
+                    Box(modifier = Modifier.weight(1f).clickable { onNavigateToProfile() }
+                        .padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.Person, null, tint = Color.Gray)
+                            Text("Perfil", fontSize = 11.sp, color = Color.Gray)
+                        }
                     }
                 }
             }
@@ -104,58 +102,55 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(backgroundColor)
-                .padding(paddingValues)
+                .padding(bottom = paddingValues.calculateBottomPadding())
                 .statusBarsPadding()
                 .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "FlowPay",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                Text("FlowPay", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
 
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notificaciones",
-                        tint = Color.White
-                    )
+                IconButton(onClick = {
+                    Toast.makeText(context, "Módulo de notificaciones en construcción", Toast.LENGTH_SHORT).show()
+                }) {
+                    Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = Color.White)
                 }
             }
-
             Text(
-                text = "Hola, $userName 👋",
+                "Hola, $userName 👋",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
             Text(
-                text = "Aquí está el resumen de tu negocio hoy.",
+                "Aquí está el resumen de tu negocio hoy.",
                 fontSize = 14.sp,
                 color = Color.Gray,
                 modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
             )
 
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = cardColor)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text(text = "VENDIDO HOY", fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "$${String.format("%.2f", salesToday)}", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(
+                        "VENDIDO HOY",
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "$${String.format("%.2f", salesToday)}",
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 }
             }
 
@@ -169,30 +164,39 @@ fun DashboardScreen(
                     colors = CardDefaults.cardColors(containerColor = cardColor)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "Inversión", fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "$${String.format("%.2f", investmentToday)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(
+                            "Inversión",
+                            fontSize = 12.sp,
+                            color = Color.Gray,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "$${String.format("%.2f", investmentToday)}",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                     }
                 }
-
                 Card(
-                    modifier = Modifier
-                        .weight(1f)
-                        .border(width = 1.5.dp, color = greenColor, shape = RoundedCornerShape(16.dp)),
+                    modifier = Modifier.weight(1f)
+                        .border(1.5.dp, greenColor, RoundedCornerShape(16.dp)),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = cardColor)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = "Ganancia neta", fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-                            Text(text = "📈", fontSize = 12.sp)
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "$${String.format("%.2f", profitToday)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = greenColor)
+                        Text(
+                            "Ganancia neta",
+                            fontSize = 12.sp,
+                            color = Color.Gray,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "$${String.format("%.2f", salesToday - investmentToday)}",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = greenColor
+                        )
                     }
                 }
             }
@@ -201,63 +205,106 @@ fun DashboardScreen(
 
             Button(
                 onClick = { onNavigateToRegisterSale() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp),
+                modifier = Modifier.fillMaxWidth().height(54.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = greenColor),
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = Color.White)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Registrar Venta", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                }
+                Icon(Icons.Default.Add, null, tint = Color.White)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Registrar Venta", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = { onNavigateToCloseDay() },
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                shape = RoundedCornerShape(14.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444)),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent)
+            ) {
+                Text(
+                    "Finalizar Jornada",
+                    fontSize = 16.sp,
+                    color = Color(0xFFEF4444),
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Últimas ventas",
+                    "Últimas ventas",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
                 Text(
-                    text = "Ver todo",
+                    "Ver todo",
                     fontSize = 14.sp,
                     color = greenColor,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { }
-                )
+                    modifier = Modifier.clickable { onNavigateToHistory() })
             }
-
             Spacer(modifier = Modifier.height(16.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = cardColor)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center
+            if (recentSales.isEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = cardColor)
                 ) {
-                    Text(
-                        text = "Aún no registras ventas el día de hoy. 🏪",
-                        color = Color.Gray,
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "Aún no registras ventas el día de hoy. 🏪",
+                            color = Color.Gray,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    recentSales.forEach { sale ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = cardColor)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        sale.productName,
+                                        color = Color.White,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        "${sale.time} • ${sale.paymentMethod}",
+                                        color = Color.Gray,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                                Text(
+                                    "+$${sale.price}",
+                                    color = greenColor,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
@@ -268,12 +315,12 @@ fun DashboardScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Ir a Mis Productos",
+                    text = "Ir a Productos",
                     color = greenColor,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
-                        .clickable { }
+                        .clickable { onNavigateToProducts() }
                         .padding(vertical = 8.dp)
                 )
             }

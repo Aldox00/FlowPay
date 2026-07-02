@@ -41,7 +41,8 @@ data class Product(
     val id: Int,
     val name: String,
     val price: Double,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector = androidx.compose.material.icons.Icons.Default.Cake
+    val icon: androidx.compose.ui.graphics.vector.ImageVector = androidx.compose.material.icons.Icons.Default.Cake,
+    val imageUri: String? = null
 )
 
 class MainActivity : ComponentActivity() {
@@ -49,6 +50,8 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnrememberedMutableState")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
             FlowPayTheme {
                 Surface(
@@ -71,37 +74,40 @@ class MainActivity : ComponentActivity() {
                     val totalProfitToday by derivedStateOf { totalSalesToday - totalInvestmentToday }
                     val todaySales = remember { mutableStateListOf<SaleRecord>() }
 
-                    val historyRecords = remember {
-                        mutableStateListOf(
-                            DailyRecord("12 de Junio", 2850.0, 1100.0, 1750.0),
-                            DailyRecord("11 de Junio", 1920.5, 850.0, 1070.5),
-                            DailyRecord("10 de Junio", 3100.0, 1400.0, 1700.0)
-                        )
-                    }
-
+                    val historyRecords = remember { mutableStateListOf<DailyRecord>() }
                     var hasSurveyedThisWeek by remember { mutableStateOf(false) }
                     var hasSurveyedThisMonth by remember { mutableStateOf(false) }
                     var pendingFilterAfterSurvey by remember { mutableStateOf("Semana") }
+
+                    fun syncTodayHistory() {
+                        val todayStr = SimpleDateFormat("dd 'de' MMMM", Locale("es", "MX")).format(Date())
+                        val existingIndex = historyRecords.indexOfFirst { it.date == todayStr }
+                        val currentProfit = totalSalesToday - totalInvestmentToday
+
+                        if (existingIndex != -1) {
+                            historyRecords[existingIndex] = DailyRecord(
+                                date = todayStr,
+                                sales = totalSalesToday,
+                                investment = totalInvestmentToday,
+                                profit = currentProfit
+                            )
+                        } else {
+                            historyRecords.add(0, DailyRecord(
+                                date = todayStr,
+                                sales = totalSalesToday,
+                                investment = totalInvestmentToday,
+                                profit = currentProfit
+                            ))
+                        }
+                    }
 
                     fun registerSale(productName: String, price: Double, method: String) {
                         totalSalesToday += price
                         val timeStr = SimpleDateFormat("hh:mm a", Locale("es", "MX")).format(Date())
                         todaySales.add(SaleRecord(productName, price, method, timeStr))
-
-                        val todayStr = SimpleDateFormat("dd 'de' MMMM", Locale("es", "MX")).format(Date())
-                        val existingIndex = historyRecords.indexOfFirst { it.date == todayStr }
-                        if (existingIndex != -1) {
-                            val old = historyRecords[existingIndex]
-                            historyRecords[existingIndex] = DailyRecord(
-                                date = todayStr,
-                                sales = old.sales + price,
-                                investment = old.investment,
-                                profit = (old.sales + price) - old.investment
-                            )
-                        } else {
-                            historyRecords.add(0, DailyRecord(todayStr, price, 0.0, price))
-                        }
+                        syncTodayHistory()
                     }
+
                     var tempRegName by remember { mutableStateOf("") }
                     var tempRegEmail by remember { mutableStateOf("") }
                     var tempRegPassword by remember { mutableStateOf("") }
@@ -109,8 +115,6 @@ class MainActivity : ComponentActivity() {
                     var tempRegPrivacyAccepted by remember { mutableStateOf(false) }
 
                     NavHost(navController = navController, startDestination = "landing") {
-
-
 
                         composable("landing") {
                             LandingScreen(
@@ -203,6 +207,7 @@ class MainActivity : ComponentActivity() {
                                 onDismiss = { navController.popBackStack() },
                                 onSaveAndStart = { investmentAmount ->
                                     totalInvestmentToday += investmentAmount
+                                    syncTodayHistory()
                                     navController.navigate("dashboard") {
                                         popUpTo("active_products") { inclusive = true }
                                     }
@@ -284,8 +289,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-
-
                         composable("close_day") {
                             CloseDayScreen(
                                 totalSales = totalSalesToday,
@@ -301,14 +304,17 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-
                         composable("history") {
                             HistoryScreen(
                                 records = historyRecords,
                                 onNavigateToDashboard = {
-                                    navController.navigate("dashboard") {
-                                        popUpTo("dashboard") { inclusive = true }
-                                    }
+                                    navController.navigate("dashboard") { popUpTo(0) }
+                                },
+                                onNavigateToProductos = {
+                                    navController.navigate("products") { popUpTo(0) }
+                                },
+                                onNavigateToPerfil = {
+                                    navController.navigate("profile") { popUpTo(0) }
                                 },
                                 onNavigateToSurvey = { filter ->
                                     pendingFilterAfterSurvey = filter
@@ -341,14 +347,14 @@ class MainActivity : ComponentActivity() {
 
                         composable("day_detail/{date}/{sales}/{investment}/{profit}") { backStackEntry ->
                             val date = backStackEntry.arguments?.getString("date") ?: "Sin fecha"
-                            val sales = backStackEntry.arguments?.getString("sales")?.toDoubleOrNull() ?: 0.0
-                            val investment = backStackEntry.arguments?.getString("investment")?.toDoubleOrNull() ?: 0.0
+                            val sales = backStackEntry.arguments?.getString("sales") ?: "0.0"
+                            val investment = backStackEntry.arguments?.getString("investment") ?: "0.0"
                             val profit = backStackEntry.arguments?.getString("profit")?.toDoubleOrNull() ?: 0.0
 
                             DayDetailScreen(
                                 date = date,
-                                totalSales = sales,
-                                totalInvestment = investment,
+                                totalSalesStr = sales,
+                                totalInvestmentStr = investment,
                                 netProfit = profit,
                                 onNavigateBack = { navController.popBackStack() },
                                 onViewReceipts = { navController.navigate("receipts") },
@@ -366,7 +372,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-
                         composable("locked_history") {
                             LockedHistoryScreen(
                                 onNavigateBack = { navController.popBackStack() },
@@ -376,7 +381,6 @@ class MainActivity : ComponentActivity() {
                                 onPerfilClick = { navController.navigate("profile") { popUpTo(0) } }
                             )
                         }
-
 
                         composable("profile") {
                             ProfileScreen(
@@ -417,16 +421,20 @@ class MainActivity : ComponentActivity() {
                             MyProductsScreen(
                                 products = productCatalog,
                                 onNavigateBack = { navController.popBackStack() },
-                                onAddProductClick = { name, price ->
-                                    if (productCatalog.size < 2) {
-                                        val newId = (productCatalog.maxOfOrNull { it.id } ?: 0) + 1
-                                        productCatalog.add(Product(newId, name, price))
-                                    }
+                                onAddProductClick = { name, price, imageUri ->
+                                    val newId = (productCatalog.maxOfOrNull { it.id } ?: 0) + 1
+                                    productCatalog.add(Product(newId, name, price, imageUri = imageUri))
                                 },
-                                onEditProductClick = { productId, newName, newPrice ->
+                                onEditProductClick = { productId, newName, newPrice, imageUri ->
                                     val index = productCatalog.indexOfFirst { it.id == productId }
                                     if (index != -1) {
-                                        productCatalog[index] = Product(productId, newName, newPrice)
+                                        val oldProduct = productCatalog[index]
+                                        productCatalog[index] = Product(
+                                            id = productId,
+                                            name = newName,
+                                            price = newPrice,
+                                            imageUri = imageUri ?: oldProduct.imageUri
+                                        )
                                     }
                                 },
                                 onDeleteProductClick = { productId ->

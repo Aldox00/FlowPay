@@ -171,7 +171,7 @@ fun LoginScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1DB954)), // Verde Figma brillante
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1DB954)),
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     Row(
