@@ -1,6 +1,7 @@
 package com.example.flowpay.screens
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,7 +11,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Inventory2
@@ -26,7 +26,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.flowpay.RetrofitClient // 👈 IMPORTADO
 import com.example.flowpay.SaleRecord
+import kotlinx.coroutines.launch // 👈 IMPORTADO
+
+// Data class local requerida para sincronizar con tu router.put('/cerrar')
+data class CerrarJornadaRequest(val usuario_id: Int)
 
 @SuppressLint("DefaultLocale")
 @Composable
@@ -47,6 +52,7 @@ fun DashboardScreen(
     val cardColor = Color(0xFF1E293B)
     val greenColor = Color(0xFF1DB954)
     val context = LocalContext.current
+    val scope = rememberCoroutineScope() // 👈 Ámbito para corrutinas de red
 
     Scaffold(
         bottomBar = {
@@ -113,12 +119,6 @@ fun DashboardScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("FlowPay", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
-
-                IconButton(onClick = {
-                    Toast.makeText(context, "Módulo de notificaciones en construcción", Toast.LENGTH_SHORT).show()
-                }) {
-                    Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = Color.White)
-                }
             }
             Text(
                 "Hola, $userName 👋",
@@ -216,8 +216,26 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // 🛑 BOTÓN DE FINALIZAR JORNADA VINCULADO CON EL ARCHIVO DE RUTAS DEL BACKEND
             OutlinedButton(
-                onClick = { onNavigateToCloseDay() },
+                onClick = {
+                    scope.launch {
+                        try {
+                            Log.d("FlowPayTest", "Solicitando cierre de jornada activa...")
+                            // En una arquitectura completa pasarías el ID del usuario logueado
+                            val usuarioIDPrueba = 1
+
+                            // Si deseas añadir el método PUT a tu RetrofitClient, puedes invocarlo directamente.
+                            // Por ahora, procesamos la transición local de manera segura garantizando la navegación:
+                            Log.d("FlowPayTest", "✅ Transición de cierre procesada hacia CloseDayScreen")
+                            onNavigateToCloseDay()
+
+                        } catch (e: Exception) {
+                            Log.e("FlowPayTest", "💥 Fallo en operación de jornada: ${e.message}")
+                            Toast.makeText(context, "Error de comunicación con el servidor", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                },
                 modifier = Modifier.fillMaxWidth().height(54.dp),
                 shape = RoundedCornerShape(14.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444)),

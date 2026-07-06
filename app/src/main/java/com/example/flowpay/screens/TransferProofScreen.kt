@@ -42,8 +42,9 @@ import java.io.File
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun TransferProofScreen(
+    jornadaId: Int = 0, // 🎯 NUEVO: Recibe el parámetro para acoplarse con la navegación de tu MainActivity sin fallar
     onNavigateBack: () -> Unit,
-    onProofValidated: () -> Unit
+    onProofValidated: (String) -> Unit // 🎯 MODIFICADO: Ahora sí envía la ruta (URI) de la imagen real obtenida
 ) {
     val context = LocalContext.current
 
@@ -55,6 +56,7 @@ fun TransferProofScreen(
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
+
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -109,7 +111,7 @@ fun TransferProofScreen(
                 )
             )
             .statusBarsPadding()
-            .navigationBarsPadding() // <--- ESTO SALVA EL BOTÓN INFERIOR
+            .navigationBarsPadding()
             .padding(horizontal = 24.dp)
     ) {
         IconButton(
@@ -319,10 +321,13 @@ fun TransferProofScreen(
 
         if (imageUri != null) {
             Button(
-                onClick = { onProofValidated() },
+                onClick = {
+                    // 🎯 MODIFICADO: Convertimos la URI local a String y se la mandamos de vuelta al MainActivity
+                    onProofValidated(imageUri.toString())
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp) // <--- EXTRA ESPACIO AL FONDO
+                    .padding(bottom = 24.dp)
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = greenColor),
                 shape = RoundedCornerShape(14.dp)

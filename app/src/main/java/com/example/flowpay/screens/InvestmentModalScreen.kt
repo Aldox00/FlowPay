@@ -1,5 +1,7 @@
 package com.example.flowpay.screens
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -14,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -21,13 +24,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.flowpay.RetrofitClient
+import com.google.gson.annotations.SerializedName
+import kotlinx.coroutines.launch
+
+data class JornadaRequest(
+    val usuario_id: Int,
+    @SerializedName("monto_inversion")
+    val inversion_inicial: Double
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InvestmentModalScreen(
-    onSaveAndStart: (investmentAmount: Double) -> Unit,
+    usuarioIdActivo: Int,
+    onSaveAndStart: (investmentAmount: Double, jornadaId: Int) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     val primaryGreen = Color(0x22, 0xC5, 0x5E)
     val whiteText = Color(0xFF, 0xFF, 0xFF)
     val cardBackground = Color(0x1E, 0x29, 0x3B)
@@ -35,6 +51,7 @@ fun InvestmentModalScreen(
     val secondaryText = Color(0x9C, 0xA3, 0xAF)
 
     var investmentValue by remember { mutableStateOf("") }
+    var isSaving by remember { mutableStateOf(false) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -127,11 +144,72 @@ fun InvestmentModalScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val isButtonEnabled = investmentValue.isNotBlank()
+                val isButtonEnabled = investmentValue.isNotBlank() && !isSaving
                 Button(
                     onClick = {
-                        val amount = investmentValue.toDoubleOrNull() ?: 0.0
-                        onSaveAndStart(amount)
+                        val cleanInput = investmentValue.replace(",", ".").replace(" ", "").trim()
+                        val amount = cleanInput.toDoubleOrNull() ?: 0.0
+
+                        if (amount >= 0) {
+                            isSaving = true
+
+                            scope.launch {
+                                try {
+                                    Log.d("FlowPayTest", "Iniciando jornada en la API para usuario $usuarioIdActivo con monto: $amount...")
+
+                                    val req = JornadaRequest(
+                                        usuario_id = usuarioIdActivo,
+                                        inversion_inicial = amount
+                                    )
+
+                                    var respuesta = RetrofitClient.apiService.abrirJornada(req)
+                                    var idJornadaFinal = 0
+
+                                    if (respuesta.isSuccessful) {
+                                        idJornadaFinal = respuesta.body()?.jornada_id ?: 0
+                                        Log.d("FlowPayTest", "✅ Primera respuesta exitosa de Node.js. ID recibido: $idJornadaFinal")
+
+                                        // 🎯 BYPASS INTELIGENTE: Si el backend devolvió exitoso pero con ID 0, le volvemos a preguntar
+                                        // provocando que devuelva intencionalmente el error donde SÍ viene el ID real.
+                                        if (idJornadaFinal == 0) {
+                                            Log.d("FlowPayTest", "⚠️ ID en 0 detectado. Activando bypass para extraer ID real de la jornada...")
+                                            val respuestaBypass = RetrofitClient.apiService.abrirJornada(req)
+
+                                            if (!respuestaBypass.isSuccessful) {
+                                                val errorMsgBypass = respuestaBypass.errorBody()?.string() ?: ""
+                                                val match = Regex("\"jornadaId\":\\s*(\\d+)").find(errorMsgBypass)
+                                                idJornadaFinal = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
+                                                Log.d("FlowPayTest", "🔄 [Bypass Exitoso] ID Real recuperado dinámicamente: $idJornadaFinal")
+                                            }
+                                        }
+
+                                        Toast.makeText(context, "¡Jornada iniciada con éxito!", Toast.LENGTH_SHORT).show()
+                                        onSaveAndStart(amount, idJornadaFinal)
+
+                                    } else {
+                                        val errorMsg = respuesta.errorBody()?.string() ?: ""
+                                        Log.e("FlowPayTest", "❌ El servidor rechazó la jornada: $errorMsg")
+
+                                        if (errorMsg.contains("ya tienes una activa") || respuesta.code() == 400) {
+                                            val match = Regex("\"jornadaId\":\\s*(\\d+)").find(errorMsg)
+                                            idJornadaFinal = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
+
+                                            Log.d("FlowPayTest", "🔄 Recuperado dinámicamente ID de jornada activa existente: $idJornadaFinal")
+                                            Toast.makeText(context, "Continuando jornada activa...", Toast.LENGTH_SHORT).show()
+
+                                            onSaveAndStart(amount, idJornadaFinal)
+                                        } else {
+                                            Toast.makeText(context, "Servidor rechazó el inicio de jornada", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("FlowPayTest", "💥 Fallo crítico de red en Jornada: ${e.message}")
+                                    Toast.makeText(context, "Error de red al conectar con el servidor", Toast.LENGTH_SHORT).show()
+                                } finally {
+                                    isSaving = false
+                                }
+                            }
+                        }
                     },
                     enabled = isButtonEnabled,
                     colors = ButtonDefaults.buttonColors(
@@ -148,17 +226,19 @@ fun InvestmentModalScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "Guardar e iniciar jornada",
+                            text = if (isSaving) "Iniciando..." else "Guardar e iniciar jornada",
                             color = if (isButtonEnabled) Color.White else Color.White.copy(alpha = 0.5f),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            tint = if (isButtonEnabled) Color.White else Color.White.copy(alpha = 0.5f),
-                            modifier = Modifier.size(18.dp)
-                        )
+                        if (!isSaving) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = if (isButtonEnabled) Color.White else Color.White.copy(alpha = 0.5f),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                 }
             }

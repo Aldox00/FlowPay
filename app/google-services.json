@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "674577932559",
+    "project_id": "flowpay-5b7f5",
+    "storage_bucket": "flowpay-5b7f5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674577932559:android:05564316783e5ee0405e7a",
+        "android_client_info": {
+          "package_name": "com.example.flowpay"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "674577932559-jdhjp7m2ojjd6o8aaua6tlep4tldhfn8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flowpay",
+            "certificate_hash": "c4e764d0a3a82726444d8697ae957892c34ec5d4"
+          }
+        },
+        {
+          "client_id": "674577932559-kksvij3am1g84airvmfvitddihd0psit.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKmCh5gZbc0ZDUfb4I5mhCaqrockfap7A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "674577932559-kksvij3am1g84airvmfvitddihd0psit.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

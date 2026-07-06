@@ -1,5 +1,7 @@
 package com.example.flowpay.screens
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,12 +21,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.flowpay.RetrofitClient
+import com.example.flowpay.VentaRequest
+import com.example.flowpay.DetalleVentaRequest
+import kotlinx.coroutines.launch
 
 @Composable
 fun SelectPaymentScreen(
+    jornadaIdActiva: Int,
     productName: String,
     productPrice: String,
     onNavigateBack: () -> Unit,
@@ -32,6 +40,9 @@ fun SelectPaymentScreen(
     onNavigateToTransferProof: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     val backgroundColor = Color(0xFF0F172A)
     val cardColor = Color(0xFF1E293B)
     val greenColor = Color(0xFF1DB954)
@@ -39,7 +50,7 @@ fun SelectPaymentScreen(
     val productIcon = if (productName == "Hot Cakes") Icons.Default.BakeryDining else Icons.Default.Cake
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(backgroundColor)
             .statusBarsPadding()
@@ -88,17 +99,63 @@ fun SelectPaymentScreen(
         Text(text = "¿Cómo te pagaron?", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
         Text(text = "Selecciona el método de recepción", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(top = 4.dp, bottom = 24.dp))
 
+        // 💵 PAGO EN EFECTIVO
         PaymentMethodRow(
             title = "Efectivo",
             subtitle = "Pago en mano",
             icon = Icons.Default.Payments,
             greenColor = greenColor,
             cardColor = cardColor,
-            onClick = { onCashSelected() }
+            onClick = {
+                if (jornadaIdActiva <= 0) {
+                    Toast.makeText(context, "Error: No hay una jornada activa válida. Reinicia sesión.", Toast.LENGTH_LONG).show()
+                    Log.e("FlowPayTest", "🛑 Abortando venta: jornadaIdActiva es $jornadaIdActiva")
+                    return@PaymentMethodRow
+                }
+
+                val precioNumero = productPrice.toDoubleOrNull() ?: 0.0
+
+                scope.launch {
+                    try {
+                        Log.d("FlowPayTest", "Enviando venta en Efectivo al Backend con Jornada ID: $jornadaIdActiva...")
+
+                        val idProductoDinamico = if (productName == "Hot Cakes") 1 else 2
+
+                        val detalleUnico = DetalleVentaRequest(
+                            producto_id = idProductoDinamico,
+                            cantidad = 1,
+                            precio_unitario = precioNumero
+                        )
+
+                        val ventaReq = VentaRequest(
+                            jornada_id = jornadaIdActiva,
+                            total = precioNumero,
+                            tipo_pago = "Efectivo",
+                            detalles = listOf(detalleUnico)
+                        )
+
+                        val respuesta = RetrofitClient.apiService.registrarVenta(ventaReq)
+
+                        if (respuesta.isSuccessful) {
+                            Log.d("FlowPayTest", "✅ ¡Venta y detalles insertados con éxito en MySQL!")
+                            Toast.makeText(context, "¡Venta guardada en la Base de Datos!", Toast.LENGTH_SHORT).show()
+                            onCashSelected()
+                        } else {
+                            val errorBody = respuesta.errorBody()?.string() ?: ""
+                            Log.e("FlowPayTest", "❌ El servidor rechazó la transacción: $errorBody")
+                            Toast.makeText(context, "El servidor rechazó la venta.", Toast.LENGTH_LONG).show()
+                        }
+                    } catch (e: Exception) {
+                        Log.e("FlowPayTest", "💥 Fallo de red al intentar registrar venta: ${e.message}")
+                        Toast.makeText(context, "Error de conexión con Node.js", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // 💳 PAGO EN TRANSFERENCIA
         PaymentMethodRow(
             title = "Transferencia",
             subtitle = "CoDi / SPEI • Podrás guardar el comprobante",
@@ -110,7 +167,11 @@ fun SelectPaymentScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Row(modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(text = "🛡️ Transacción segura • FlowPay ", fontSize = 12.sp, color = Color.DarkGray)
         }
     }

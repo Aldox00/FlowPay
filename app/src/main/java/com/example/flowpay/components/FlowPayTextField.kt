@@ -30,7 +30,8 @@ fun FlowPayTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(text = label, color = Color(0x99FFFFFF)) },
+        // 🟢 Cambiado por legibilidad y un look grisáceo más integrado en modo oscuro
+        placeholder = { Text(text = label, color = Color.White.copy(alpha = 0.5f)) },
         leadingIcon = { Icon(imageVector = leadingIcon, contentDescription = null, tint = Color(0xFF1DB954)) },
 
         visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
@@ -53,10 +54,10 @@ fun FlowPayTextField(
             focusedTextColor = Color.White,
             unfocusedTextColor = Color.White,
             focusedBorderColor = Color(0xFF1DB954),
-            unfocusedBorderColor = Color(0x66FFFFFF),
+            unfocusedBorderColor = Color(0x33FFFFFF), // 🟢 Bajamos un pelín el borde inactivo para que la tarjeta de arriba resalte más
             cursorColor = Color.White,
             focusedLabelColor = Color(0xFF1DB954),
-            unfocusedLabelColor = Color(0x99FFFFFF)
+            unfocusedLabelColor = Color.White.copy(alpha = 0.5f)
         )
     )
 }

@@ -1,6 +1,10 @@
 package com.example.flowpay.screens
 
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,20 +29,86 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.example.flowpay.R
 import com.example.flowpay.components.FlowPayTextField
+import com.example.flowpay.RetrofitClient
+import com.example.flowpay.LoginRequest
+import com.example.flowpay.GoogleLoginRequest
+import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 @Composable
 fun LoginScreen(
     registeredEmail: String,
     registeredPassword: String,
-    onLoginSuccess: () -> Unit,
+    // 🟢 MODIFICADO: Ahora propaga los datos de sesión completos para el saludo dinámico
+    onLoginSuccess: (idUsuario: Int, nombreUsuario: String?, correoUsuario: String?) -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val mostrarSugerenciaGoogle = remember(email) {
+        email.trim().equals("josueahyundai@gmail.com", ignoreCase = true)
+    }
+
+    val ejecutarLoginGoogle: suspend () -> Unit = {
+        try {
+            val credentialManager = CredentialManager.create(context)
+            val webClientId = "674577932559-kksvij3am1g84airvmfvitddihd0psit.apps.googleusercontent.com"
+
+            val googleIdOption = GetGoogleIdOption.Builder()
+                .setFilterByAuthorizedAccounts(false)
+                .setServerClientId(webClientId)
+                .setAutoSelectEnabled(false)
+                .build()
+
+            val request = GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build()
+
+            Log.d("FlowPayTest", "Lanzando ventana de Google...")
+            val result = credentialManager.getCredential(context = context, request = request)
+            val credential = result.credential
+
+            if (credential is GoogleIdTokenCredential) {
+                val tokenRealGoogle = credential.idToken
+                Log.d("FlowPayTest", "Token de Google obtenido con éxito. Enviando al servidor...")
+
+                val tokenGooglePayload = GoogleLoginRequest(idToken = tokenRealGoogle)
+                val respuesta = RetrofitClient.apiService.loginConGoogle(tokenGooglePayload)
+
+                if (respuesta.isSuccessful && respuesta.body() != null) {
+                    // 🟢 CAPTURA DE DATOS DESDE EL LOGIN DE GOOGLE
+                    val body = respuesta.body()
+                    val idUsuarioAutenticado = body?.usuario?.id ?: 5
+                    val nombreUsuario = body?.usuario?.nombre ?: "Estudiante"
+                    val correoUsuario = body?.usuario?.correo ?: ""
+
+                    Log.d("FlowPayTest", "🚀 Login con Google exitoso en Servidor. ID: $idUsuarioAutenticado")
+                    Toast.makeText(context, "¡Bienvenido con Google!", Toast.LENGTH_SHORT).show()
+
+                    // 🚀 Mandamos los 3 parámetros para actualizar el MainActivity
+                    onLoginSuccess(idUsuarioAutenticado, nombreUsuario, correoUsuario)
+                } else {
+                    Log.e("FlowPayTest", "El servidor rechazó el Token de Google. Código: ${respuesta.code()}")
+                    Toast.makeText(context, "Error al validar la cuenta con el servidor", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Log.e("FlowPayTest", "Tipo de credencial no soportado por el dispositivo")
+            }
+        } catch (e: Exception) {
+            Log.e("FlowPayTest", "Fallo el flujo de Google: ${e.localizedMessage}")
+            Toast.makeText(context, "Inicio de sesión cancelado o interrumpido", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -66,7 +136,6 @@ fun LoginScreen(
                     .background(Color(0xFF0F6E36), shape = RoundedCornerShape(18.dp)),
                 contentAlignment = Alignment.Center
             ) {
-
                 Image(
                     painter = painterResource(id = R.drawable.logo_flowpay),
                     contentDescription = "Logo FlowPay",
@@ -106,6 +175,56 @@ fun LoginScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
+                AnimatedVisibility(
+                    visible = mostrarSugerenciaGoogle,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp)
+                            .clickable {
+                                scope.launch { ejecutarLoginGoogle() }
+                            },
+                        colors = CardDefaults.cardColors(containerColor = Color(0x261DB954)),
+                        shape = RoundedCornerShape(14.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x661DB954))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .background(Color.White, shape = RoundedCornerShape(6.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = "G", color = Color(0xFF1DB954), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "¿Eres tú?",
+                                    color = Color.White,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Continúa con tu cuenta de Google",
+                                    color = Color.LightGray,
+                                    fontSize = 11.sp
+                                )
+                            }
+
+                            Text(text = "➔", color = Color.White, fontSize = 14.sp)
+                        }
+                    }
+                }
 
                 Text(
                     text = "Correo Electrónico",
@@ -158,11 +277,46 @@ fun LoginScreen(
                 Button(
                     onClick = {
                         if (email.isNotBlank() && password.isNotBlank()) {
-                            if (email == registeredEmail && password == registeredPassword) {
-                                Toast.makeText(context, "¡Bienvenido de vuelta!", Toast.LENGTH_SHORT).show()
-                                onLoginSuccess()
-                            } else {
-                                Toast.makeText(context, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
+                            val datosLogin = LoginRequest(email.trim(), password)
+
+                            scope.launch {
+                                try {
+                                    Log.d("FlowPayTest", "Mandando login a la API... Email: ${email.trim()}")
+                                    val respuesta = RetrofitClient.apiService.loginUsuario(datosLogin)
+
+                                    if (respuesta.isSuccessful && respuesta.body() != null) {
+                                        Log.d("FlowPayTest", "🚀 Login exitoso. Redireccionando sin crear jornada previa.")
+
+                                        // 🟢 CAPTURA DE DATOS REALES DESDE EL LOGIN MANUAL
+                                        val body = respuesta.body()
+                                        val idUsuarioAutenticado = body?.usuario?.id ?: 5
+                                        val nombreUsuario = body?.usuario?.nombre ?: "Estudiante"
+                                        val correoUsuario = body?.usuario?.correo ?: ""
+
+                                        Toast.makeText(context, "¡Bienvenido de vuelta!", Toast.LENGTH_SHORT).show()
+
+                                        // 🚀 Mandamos los 3 parámetros de regreso a MainActivity
+                                        onLoginSuccess(idUsuarioAutenticado, nombreUsuario, correoUsuario)
+                                    } else {
+                                        Log.e("FlowPayTest", "❌ Rechazado por el backend. Código: ${respuesta.code()}")
+
+                                        try {
+                                            val errorBodyString = respuesta.errorBody()?.string()
+                                            if (!errorBodyString.isNullOrBlank()) {
+                                                val jsonObject = JSONObject(errorBodyString)
+                                                val mensajeDelServidor = jsonObject.getString("msg")
+                                                Toast.makeText(context, mensajeDelServidor, Toast.LENGTH_LONG).show()
+                                            } else {
+                                                Toast.makeText(context, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
+                                            }
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("FlowPayTest", "💥 Fallo de red: ${e.message}")
+                                    Toast.makeText(context, "Error de conexión con el servidor", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         } else {
                             Toast.makeText(context, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show()
@@ -188,7 +342,9 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedButton(
-                    onClick = { },
+                    onClick = {
+                        scope.launch { ejecutarLoginGoogle() }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),

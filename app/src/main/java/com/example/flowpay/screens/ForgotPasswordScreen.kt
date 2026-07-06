@@ -1,5 +1,6 @@
 package com.example.flowpay.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,11 +29,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flowpay.R
 import com.example.flowpay.components.FlowPayTextField
+import com.example.flowpay.RetrofitClient             // 🟢 NUEVO IMPORT
+import com.example.flowpay.SolicitarRecuperacionRequest // 🟢 NUEVO IMPORT
+import kotlinx.coroutines.launch                     // 🟢 NUEVO IMPORT
+import org.json.JSONObject                            // 🟢 NUEVO IMPORT
 
 @Composable
-fun ForgotPasswordScreen(onNavigateBack: () -> Unit) {
+fun ForgotPasswordScreen(
+    onNavigateBack: () -> Unit,
+    onNavigateToRestablecer: (String) -> Unit // 🟢 NUEVA ACCIÓN: Pasa el token a la siguiente pantalla
+) {
     var email by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope() // 🟢 NUEVO: Scope para lanzar la corrutina de Retrofit
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -147,8 +156,44 @@ fun ForgotPasswordScreen(onNavigateBack: () -> Unit) {
             Button(
                 onClick = {
                     if (email.isNotBlank() && email.contains("@") && email.contains(".")) {
-                        Toast.makeText(context, "Enlace enviado a tu correo", Toast.LENGTH_LONG).show()
-                        onNavigateBack()
+
+                        // 🟢 LÓGICA DE CONEXIÓN CON TU BACKEND EN RENDER
+                        scope.launch {
+                            try {
+                                Log.d("FlowPayTest", "Solicitando token para: ${email.trim()}")
+                                val datosEnvio = SolicitarRecuperacionRequest(email.trim())
+                                val respuesta = RetrofitClient.apiService.solicitarRecuperacion(datosEnvio)
+
+                                if (respuesta.isSuccessful && respuesta.body() != null) {
+                                    val tokenRecibido = respuesta.body()?.token ?: ""
+                                    val mensajeServer = respuesta.body()?.msg ?: "Enlace generado"
+
+                                    Toast.makeText(context, mensajeServer, Toast.LENGTH_LONG).show()
+
+                                    // 🚀 NAVEGAMOS AUTOMÁTICAMENTE PASANDO EL TOKEN EN CONSOLA
+                                    onNavigateToRestablecer(tokenRecibido)
+
+                                } else {
+                                    Log.e("FlowPayTest", "❌ Error al solicitar. Código: ${respuesta.code()}")
+                                    try {
+                                        val errorBodyString = respuesta.errorBody()?.string()
+                                        if (!errorBodyString.isNullOrBlank()) {
+                                            val jsonObject = JSONObject(errorBodyString)
+                                            val msg = jsonObject.getString("msg")
+                                            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                        } else {
+                                            Toast.makeText(context, "El correo no está registrado", Toast.LENGTH_SHORT).show()
+                                        }
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "El correo no está registrado", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                Log.e("FlowPayTest", "💥 Fallo de red en recuperación: ${e.message}")
+                                Toast.makeText(context, "Error de conexión con el servidor", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
                     } else {
                         Toast.makeText(context, "Por favor introduce un correo válido", Toast.LENGTH_SHORT).show()
                     }

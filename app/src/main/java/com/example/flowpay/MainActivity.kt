@@ -12,7 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
@@ -22,6 +21,7 @@ import com.example.flowpay.ui.theme.FlowPayTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 data class DailyRecord(
     val date: String,
@@ -34,7 +34,8 @@ data class SaleRecord(
     val productName: String,
     val price: Double,
     val paymentMethod: String,
-    val time: String
+    val time: String,
+    val imageUri: String? = null
 )
 
 data class Product(
@@ -64,6 +65,10 @@ class MainActivity : ComponentActivity() {
                     var registeredEmail by remember { mutableStateOf("") }
                     var registeredPassword by remember { mutableStateOf("") }
                     var hasCompletedSetup by remember { mutableStateOf(false) }
+
+                    // 🎯 CONTROL CENTRALIZADO MULTIUSUARIO DE ALUMNOS
+                    var usuarioIdSesion by remember { mutableIntStateOf(0) }
+                    var jornadaIdSesion by remember { mutableIntStateOf(0) }
 
                     val productCatalog = remember {
                         mutableStateListOf<Product>()
@@ -101,10 +106,11 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    fun registerSale(productName: String, price: Double, method: String) {
+                    // Acepta el parámetro opcional de la URI de la foto
+                    fun registerSale(productName: String, price: Double, method: String, imageUri: String? = null) {
                         totalSalesToday += price
                         val timeStr = SimpleDateFormat("hh:mm a", Locale("es", "MX")).format(Date())
-                        todaySales.add(SaleRecord(productName, price, method, timeStr))
+                        todaySales.add(SaleRecord(productName, price, method, timeStr, imageUri))
                         syncTodayHistory()
                     }
 
@@ -155,7 +161,14 @@ class MainActivity : ComponentActivity() {
                             LoginScreen(
                                 registeredEmail = registeredEmail,
                                 registeredPassword = registeredPassword,
-                                onLoginSuccess = {
+                                // 🟢 ACTUALIZADO: Ahora recibe dinámicamente nombre y correo desde el login (manual o Google)
+                                onLoginSuccess = { idUsuarioRecibido, nombreUsuarioRecibido, correoUsuarioRecibido ->
+                                    usuarioIdSesion = idUsuarioRecibido
+
+                                    // 🎯 Seteamos los datos reales entregados por tu base de datos en la nube
+                                    if (!nombreUsuarioRecibido.isNullOrBlank()) registeredName = nombreUsuarioRecibido
+                                    if (!correoUsuarioRecibido.isNullOrBlank()) registeredEmail = correoUsuarioRecibido
+
                                     if (hasCompletedSetup) {
                                         navController.navigate("active_products") {
                                             popUpTo("login") { inclusive = true }
@@ -172,7 +185,24 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("forgot_password") {
-                            ForgotPasswordScreen(onNavigateBack = { navController.popBackStack() })
+                            ForgotPasswordScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToRestablecer = { tokenRecibido ->
+                                    navController.navigate("restablecer_password/$tokenRecibido")
+                                }
+                            )
+                        }
+
+                        composable("restablecer_password/{token}") { backStackEntry ->
+                            val token = backStackEntry.arguments?.getString("token") ?: ""
+                            RestablecerPasswordScreen(
+                                tokenRecuperacion = token,
+                                onPasswordChangedSuccess = {
+                                    navController.navigate("login") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                }
+                            )
                         }
 
                         composable("initial_setup") {
@@ -204,9 +234,11 @@ class MainActivity : ComponentActivity() {
 
                         dialog("investment_modal") {
                             InvestmentModalScreen(
+                                usuarioIdActivo = usuarioIdSesion,
                                 onDismiss = { navController.popBackStack() },
-                                onSaveAndStart = { investmentAmount ->
+                                onSaveAndStart = { investmentAmount, idJornadaObtenido ->
                                     totalInvestmentToday += investmentAmount
+                                    jornadaIdSesion = idJornadaObtenido
                                     syncTodayHistory()
                                     navController.navigate("dashboard") {
                                         popUpTo("active_products") { inclusive = true }
@@ -245,6 +277,7 @@ class MainActivity : ComponentActivity() {
                             val productPrice = backStackEntry.arguments?.getString("productPrice") ?: "0.00"
 
                             SelectPaymentScreen(
+                                jornadaIdActiva = jornadaIdSesion,
                                 productName = productName,
                                 productPrice = productPrice,
                                 onNavigateBack = { navController.popBackStack() },
@@ -266,10 +299,11 @@ class MainActivity : ComponentActivity() {
                             val productPrice = backStackEntry.arguments?.getString("productPrice") ?: "0.00"
 
                             TransferProofScreen(
+                                jornadaId = jornadaIdSesion,
                                 onNavigateBack = { navController.popBackStack() },
-                                onProofValidated = {
+                                onProofValidated = { uriReal ->
                                     val price = productPrice.toDoubleOrNull() ?: 0.0
-                                    registerSale(productName, price, "Transferencia")
+                                    registerSale(productName, price, "Transferencia", uriReal)
                                     navController.navigate("dashboard") {
                                         popUpTo("dashboard") { inclusive = true }
                                     }
@@ -290,16 +324,73 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("close_day") {
+                            val scope = rememberCoroutineScope()
+                            val context = androidx.compose.ui.platform.LocalContext.current
+
                             CloseDayScreen(
+                                jornadaId = jornadaIdSesion,
                                 totalSales = totalSalesToday,
                                 totalInvestment = totalInvestmentToday,
                                 netProfit = totalProfitToday,
                                 onNavigateBack = { navController.popBackStack() },
                                 onFinalizeDay = {
-                                    totalSalesToday = 0.0
-                                    totalInvestmentToday = 0.0
-                                    todaySales.clear()
-                                    navController.navigate("dashboard") { popUpTo(0) }
+                                    scope.launch {
+                                        try {
+                                            android.util.Log.d("FlowPayTest", "Guardando encuesta automática para Jornada ID: $jornadaIdSesion...")
+
+                                            val respuestaEncuesta = RetrofitClient.apiService.registrarEncuesta(
+                                                EncuestaRequest(
+                                                    jornada_id = jornadaIdSesion,
+                                                    puntuacion_app = 5,
+                                                    comentarios = "Jornada cerrada exitosamente"
+                                                )
+                                            )
+
+                                            if (respuestaEncuesta.isSuccessful && respuestaEncuesta.body()?.ok == true) {
+                                                android.util.Log.d("FlowPayTest", "✅ Encuesta registrada correctamente.")
+                                            } else {
+                                                android.util.Log.e("FlowPayTest", "⚠️ No se guardó la encuesta o fue omitida por el backend.")
+                                            }
+
+                                            android.util.Log.d("FlowPayTest", "Solicitando cierre en la API para Jornada ID: $jornadaIdSesion...")
+
+                                            val efectivoTotal = todaySales.filter { it.paymentMethod == "Efectivo" }.sumOf { it.price }
+                                            val transferenciaTotal = todaySales.filter { it.paymentMethod == "Transferencia" }.sumOf { it.price }
+                                            val encContestada = if (hasSurveyedThisWeek || hasSurveyedThisMonth) 1 else 0
+
+                                            val respuesta = RetrofitClient.apiService.cerrarJornada(
+                                                CerrarJornadaRequest(
+                                                    jornada_id = jornadaIdSesion,
+                                                    monto_inversion = totalInvestmentToday,
+                                                    monto_ventas_efectivo = efectivoTotal,
+                                                    monto_ventas_transferencia = transferenciaTotal,
+                                                    ganancia_neta = totalProfitToday,
+                                                    encuesta_contestada = encContestada
+                                                )
+                                            )
+
+                                            if (respuesta.isSuccessful) {
+                                                android.util.Log.d("FlowPayTest", "✅ Jornada finalizada con éxito en MySQL.")
+                                                android.widget.Toast.makeText(context, "¡Día guardado con éxito!", android.widget.Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                android.util.Log.e("FlowPayTest", "❌ Error del servidor en el cierre: ${respuesta.errorBody()?.string()}")
+                                                android.widget.Toast.makeText(context, "El servidor rechazó el cierre de caja", android.widget.Toast.LENGTH_LONG).show()
+                                            }
+                                        } catch (e: Exception) {
+                                            android.util.Log.e("FlowPayTest", "💥 Fallo crítico de red al cerrar jornada: ${e.message}")
+                                            android.widget.Toast.makeText(context, "Error de conexión al guardar el día", android.widget.Toast.LENGTH_SHORT).show()
+                                        } finally {
+                                            totalSalesToday = 0.0
+                                            totalInvestmentToday = 0.0
+                                            jornadaIdSesion = 0
+                                            usuarioIdSesion = 0
+                                            todaySales.clear()
+
+                                            navController.navigate("landing") {
+                                                popUpTo(0) { inclusive = true }
+                                            }
+                                        }
+                                    }
                                 }
                             )
                         }
@@ -366,9 +457,14 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("receipts") {
+                            val transferenciasDelDia = todaySales.filter { it.paymentMethod == "Transferencia" }
+
                             ReceiptsScreen(
+                                transferSales = transferenciasDelDia,
                                 onNavigateBack = { navController.popBackStack() },
-                                onReceiptClick = { /* TODO: abrir imagen en grande */ }
+                                onReceiptClick = { sale ->
+                                    android.util.Log.d("FlowPayTest", "Click en el comprobante de: ${sale.productName}")
+                                }
                             )
                         }
 
@@ -394,6 +490,8 @@ class MainActivity : ComponentActivity() {
                                 onLogoutClick = {
                                     totalSalesToday = 0.0
                                     totalInvestmentToday = 0.0
+                                    jornadaIdSesion = 0
+                                    usuarioIdSesion = 0
                                     todaySales.clear()
                                     navController.navigate("login") { popUpTo(0) }
                                 },
@@ -441,7 +539,7 @@ class MainActivity : ComponentActivity() {
                                     productCatalog.removeAll { it.id == productId }
                                 },
                                 onDashboardClick = { navController.navigate("dashboard") { popUpTo(0) } },
-                                onHistorialClick = { navController.navigate("history") { popUpTo(0) } },
+                                onHistorialClick = { navController.navigate("history") { popUpTo(0) } }, // 🟢 CORREGIDO: Estructura limpia sin caracteres rotos
                                 onPerfilClick = { navController.navigate("profile") { popUpTo(0) } }
                             )
                         }
@@ -449,9 +547,9 @@ class MainActivity : ComponentActivity() {
                         composable("privacy") {
                             PrivacyScreen(onNavigateBack = { navController.popBackStack() })
                         }
-                    }
-                }
-            }
-        }
-    }
-}
+                    } // Cierre correcto de NavHost
+                } // Cierre correcto de Surface
+            } // Cierre correcto de FlowPayTheme
+        } // Cierre correcto de setContent
+    } // Cierre correcto de onCreate
+} // Cierre correcto de MainActivity

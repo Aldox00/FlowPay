@@ -1,5 +1,6 @@
 package com.example.flowpay.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,6 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flowpay.R
 import com.example.flowpay.components.FlowPayTextField
+import com.example.flowpay.RetrofitClient // 👈 IMPORTANTE
+import com.example.flowpay.RegisterRequest // 👈 IMPORTANTE
+import kotlinx.coroutines.launch // 👈 PARA LLAMADAS ASÍNCRONAS
 
 @Composable
 fun RegisterScreen(
@@ -49,6 +53,7 @@ fun RegisterScreen(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope() // 👈 Ámbito para disparar la petición del backend
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -208,14 +213,47 @@ fun RegisterScreen(
                 )
             }
 
+            // 🟢 BOTÓN DE REGISTRO CON CONEXIÓN AL BACKEND AÑADIDO
             Button(
                 onClick = {
                     if (initialName.isNotBlank() && initialEmail.isNotBlank() && initialPassword.isNotBlank()) {
-                        if (initialPrivacyAccepted) {
+                        val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(initialEmail.trim()).matches()
+
+                        if (!isEmailValid) {
+                            Toast.makeText(context, "Por favor ingresa un correo electrónico válido", Toast.LENGTH_SHORT).show()
+                        } else if (initialPrivacyAccepted) {
                             if (initialPassword.length >= 8) {
                                 if (initialPassword == initialConfirmPassword) {
-                                    Toast.makeText(context, "Cuenta creada con éxito", Toast.LENGTH_SHORT).show()
-                                    onAccountCreated(initialName, initialEmail, initialPassword)
+
+                                    // 🚀 AQUÍ EMPIEZA LA CONEXIÓN REAL AL SERVIDOR
+                                    val datosRegistro = RegisterRequest(
+                                        nombre = initialName.trim(),
+                                        correo = initialEmail.trim(),
+                                        contrasena = initialPassword
+                                    )
+
+                                    scope.launch {
+                                        try {
+                                            Log.d("FlowPayTest", "Enviando registro al backend...")
+                                            val respuesta = RetrofitClient.apiService.registrarUsuario(datosRegistro)
+
+                                            if (respuesta.isSuccessful) {
+                                                Log.d("FlowPayTest", "✅ Registrado con éxito en la Base de Datos")
+                                                Toast.makeText(context, "¡Cuenta creada con éxito!", Toast.LENGTH_SHORT).show()
+
+                                                // Te manda al login pasándole los datos reales
+                                                onAccountCreated(initialName, initialEmail, initialPassword)
+                                            } else {
+                                                val errorString = respuesta.errorBody()?.string()
+                                                Log.e("FlowPayTest", "❌ Error en Registro: $errorString")
+                                                Toast.makeText(context, "Error al registrar: Servidor lo rechazó", Toast.LENGTH_SHORT).show()
+                                            }
+                                        } catch (e: Exception) {
+                                            Log.e("FlowPayTest", "💥 Fallo de red en registro: ${e.message}")
+                                            Toast.makeText(context, "Error de red con el servidor", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+
                                 } else {
                                     Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
                                 }

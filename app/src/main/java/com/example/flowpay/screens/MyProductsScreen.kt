@@ -1,6 +1,8 @@
 package com.example.flowpay.screens
 
 import android.net.Uri
+import android.util.Log // 👈 IMPORTADO PARA MONITOREAR CON LOGCAT
+import android.widget.Toast // 👈 IMPORTADO PARA AVISARTE SI CONECTÓ
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -33,12 +35,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext // 👈 IMPORTADO
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.flowpay.Product
+import com.example.flowpay.ProductRequest // 👈 IMPORTADO DESDE TU RETROFITCLIENT
+import com.example.flowpay.RetrofitClient // 👈 IMPORTADO DESDE TU RETROFITCLIENT
+import kotlinx.coroutines.launch // 👈 IMPORTADO PARA CORRUTINAS ASÍNCRONAS
 
 @Composable
 fun MyProductsScreen(
@@ -52,6 +58,9 @@ fun MyProductsScreen(
     onPerfilClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current // 👈 Obtenemos contexto para los Toasts
+    val scope = rememberCoroutineScope() // 👈 Lanzador de peticiones HTTP en segundo plano
+
     val backgroundColor = Color(0x0F, 0x17, 0x2A)
     val primaryGreen = Color(0x22, 0xC5, 0x5E)
     val whiteText = Color(0xFF, 0xFF, 0xFF)
@@ -128,7 +137,7 @@ fun MyProductsScreen(
                                     onClick = {
                                         tempName = product.name
                                         tempPrice = product.price.toString()
-                                        selectedImageUri = product.imageUri?.let { Uri.parse(it) } // Carga la foto actual
+                                        selectedImageUri = product.imageUri?.let { Uri.parse(it) }
                                         editingProductId = product.id
                                         showEditDialog = true
                                     },
@@ -247,8 +256,38 @@ fun MyProductsScreen(
                         onClick = {
                             val price = tempPrice.toDoubleOrNull() ?: 0.0
                             if (tempName.isNotBlank() && price > 0) {
-                                onAddProductClick(tempName, price, selectedImageUri?.toString())
-                                showAddDialog = false
+
+                                // 🚀 CONEXIÓN CON TU BACKEND NODE.JS
+                                scope.launch {
+                                    try {
+                                        Log.d("FlowPayTest", "Guardando producto en la API: $tempName")
+
+                                        // 🔥 CAMBIO CLAVE: Se usó "precio_venta" en lugar de "precio"
+                                        // para acoplarse al cambio que hicimos en el RetrofitClient.
+                                        val productReq = ProductRequest(
+                                            usuario_id = 5,
+                                            nombre = tempName.trim(),
+                                            precio_venta = price
+                                        )
+
+                                        val respuesta = RetrofitClient.apiService.crearProducto(productReq)
+
+                                        if (respuesta.isSuccessful) {
+                                            Log.d("FlowPayTest", "✅ Producto registrado con éxito en MySQL")
+                                            Toast.makeText(context, "¡Producto guardado exitosamente!", Toast.LENGTH_SHORT).show()
+
+                                            onAddProductClick(tempName, price, selectedImageUri?.toString())
+                                            showAddDialog = false
+                                        } else {
+                                            val errorMsg = respuesta.errorBody()?.string()
+                                            Log.e("FlowPayTest", "❌ Error de validación del servidor: $errorMsg")
+                                            Toast.makeText(context, "El servidor rechazó el producto", Toast.LENGTH_SHORT).show()
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e("FlowPayTest", "💥 Fallo crítico de red: ${e.message}")
+                                        Toast.makeText(context, "Fallo de conexión local con el servidor", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = primaryGreen)

@@ -1,5 +1,6 @@
 package com.example.flowpay.screens
 
+import android.util.Log // 👈 IMPORTADO
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -35,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope // 👈 IMPORTADO
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +56,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.flowpay.ProductRequest // 👈 IMPORTADO
+import com.example.flowpay.RetrofitClient // 👈 IMPORTADO
+import kotlinx.coroutines.launch // 👈 IMPORTADO
 
 fun Modifier.dashedBorder(
     width: Dp,
@@ -92,6 +97,7 @@ fun InitialSetupScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope() // 👈 Hilo asíncrono para peticiones de red
 
     val backgroundColor = Color(0x0F, 0x17, 0x2A)
     val cardBackground = Color(0x1E, 0x29, 0x3B).copy(alpha = 0.7f)
@@ -242,10 +248,53 @@ fun InitialSetupScreen(
 
             Button(
                 onClick = {
-                    if (product1Name.isBlank() || product1Price.isBlank()) {
-                        Toast.makeText(context, "Por favor configura el Producto 1", Toast.LENGTH_SHORT).show()
+                    val p1PriceDouble = product1Price.toDoubleOrNull() ?: 0.0
+
+                    if (product1Name.isBlank() || product1Price.isBlank() || p1PriceDouble <= 0) {
+                        Toast.makeText(context, "Por favor configura un precio válido para el Producto 1", Toast.LENGTH_SHORT).show()
                     } else {
-                        onContinue(product1Name, product1Price, product2Name, product2Price)
+                        // 🚀 LLAMADA RED: Mandar los productos de configuración inicial a MySQL
+                        scope.launch {
+                            try {
+                                Log.d("FlowPayTest", "Enviando configuración de productos iniciales...")
+
+                                // Producto 1 (Usando precio_venta)
+                                val req1 = ProductRequest(
+                                    usuario_id = 5,
+                                    nombre = product1Name.trim(),
+                                    precio_venta = p1PriceDouble
+                                )
+                                val res1 = RetrofitClient.apiService.crearProducto(req1)
+
+                                if (res1.isSuccessful) {
+                                    Log.d("FlowPayTest", "✅ Producto 1 guardado correctamente.")
+
+                                    // Si llenó el Producto 2 opcional, también lo mandamos
+                                    val p2PriceDouble = product2Price.toDoubleOrNull() ?: 0.0
+                                    if (product2Name.isNotBlank() && p2PriceDouble > 0) {
+                                        val req2 = ProductRequest(
+                                            usuario_id = 5,
+                                            nombre = product2Name.trim(),
+                                            precio_venta = p2PriceDouble
+                                        )
+                                        val res2 = RetrofitClient.apiService.crearProducto(req2)
+                                        if (res2.isSuccessful) {
+                                            Log.d("FlowPayTest", "✅ Producto 2 guardado correctamente.")
+                                        }
+                                    }
+
+                                    Toast.makeText(context, "¡Catálogo inicial guardado con éxito!", Toast.LENGTH_SHORT).show()
+                                    // Continuar con la navegación nativa de la app
+                                    onContinue(product1Name, product1Price, product2Name, product2Price)
+                                } else {
+                                    Log.e("FlowPayTest", "❌ Error del servidor: ${res1.errorBody()?.string()}")
+                                    Toast.makeText(context, "El servidor rechazó los productos", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                Log.e("FlowPayTest", "💥 Fallo de red: ${e.message}")
+                                Toast.makeText(context, "Error de red al conectar con el servidor", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = primaryGreen),
