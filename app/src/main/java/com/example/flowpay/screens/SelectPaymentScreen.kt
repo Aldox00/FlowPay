@@ -99,7 +99,6 @@ fun SelectPaymentScreen(
         Text(text = "¿Cómo te pagaron?", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
         Text(text = "Selecciona el método de recepción", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(top = 4.dp, bottom = 24.dp))
 
-        // 💵 PAGO EN EFECTIVO
         PaymentMethodRow(
             title = "Efectivo",
             subtitle = "Pago en mano",
@@ -155,7 +154,6 @@ fun SelectPaymentScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 💳 PAGO EN TRANSFERENCIA
         PaymentMethodRow(
             title = "Transferencia",
             subtitle = "CoDi / SPEI • Podrás guardar el comprobante",

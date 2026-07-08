@@ -97,7 +97,7 @@ fun InitialSetupScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope() // 👈 Hilo asíncrono para peticiones de red
+    val scope = rememberCoroutineScope()
 
     val backgroundColor = Color(0x0F, 0x17, 0x2A)
     val cardBackground = Color(0x1E, 0x29, 0x3B).copy(alpha = 0.7f)
@@ -253,12 +253,10 @@ fun InitialSetupScreen(
                     if (product1Name.isBlank() || product1Price.isBlank() || p1PriceDouble <= 0) {
                         Toast.makeText(context, "Por favor configura un precio válido para el Producto 1", Toast.LENGTH_SHORT).show()
                     } else {
-                        // 🚀 LLAMADA RED: Mandar los productos de configuración inicial a MySQL
                         scope.launch {
                             try {
                                 Log.d("FlowPayTest", "Enviando configuración de productos iniciales...")
 
-                                // Producto 1 (Usando precio_venta)
                                 val req1 = ProductRequest(
                                     usuario_id = 5,
                                     nombre = product1Name.trim(),
@@ -269,7 +267,6 @@ fun InitialSetupScreen(
                                 if (res1.isSuccessful) {
                                     Log.d("FlowPayTest", "✅ Producto 1 guardado correctamente.")
 
-                                    // Si llenó el Producto 2 opcional, también lo mandamos
                                     val p2PriceDouble = product2Price.toDoubleOrNull() ?: 0.0
                                     if (product2Name.isNotBlank() && p2PriceDouble > 0) {
                                         val req2 = ProductRequest(
@@ -284,7 +281,6 @@ fun InitialSetupScreen(
                                     }
 
                                     Toast.makeText(context, "¡Catálogo inicial guardado con éxito!", Toast.LENGTH_SHORT).show()
-                                    // Continuar con la navegación nativa de la app
                                     onContinue(product1Name, product1Price, product2Name, product2Price)
                                 } else {
                                     Log.e("FlowPayTest", "❌ Error del servidor: ${res1.errorBody()?.string()}")

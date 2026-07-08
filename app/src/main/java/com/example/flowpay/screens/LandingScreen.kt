@@ -204,7 +204,6 @@ fun LandingScreen(
             contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp),
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
-            // Header Section
             item {
                 Row(
                     modifier = Modifier
@@ -213,7 +212,6 @@ fun LandingScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Logo and Brand Name
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -578,7 +576,7 @@ fun GlassCard(
                 color = Color.White
             )
 
-            //
+
             Text(
                 text = description,
                 fontSize = 14.sp,

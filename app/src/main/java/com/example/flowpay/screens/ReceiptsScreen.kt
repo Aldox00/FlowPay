@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage // 🎯 NUEVA IMPORTACIÓN: Carga imágenes desde URIs de forma eficiente
+import coil.compose.AsyncImage
 import com.example.flowpay.SaleRecord
 import java.text.NumberFormat
 import java.util.Locale
@@ -51,7 +51,6 @@ fun ReceiptsScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Cabecera de la pantalla
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onNavigateBack, modifier = Modifier.offset(x = (-12).dp)) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = whiteText)
@@ -64,7 +63,6 @@ fun ReceiptsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // LÓGICA DE CONTROL: Si no hay transferencias, muestra la vista vacía. Si hay, muestra la galería.
         if (transferSales.isEmpty()) {
             Spacer(modifier = Modifier.weight(1f))
             Icon(
@@ -90,7 +88,6 @@ fun ReceiptsScreen(
             )
             Spacer(modifier = Modifier.weight(1.5f))
         } else {
-            // Grid de 2 columnas con los comprobantes simulados/existentes de la venta
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -117,7 +114,6 @@ fun ReceiptsScreen(
                             verticalArrangement = Arrangement.SpaceBetween,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // 🎯 CONTENEDOR MODIFICADO: Renderiza la imagen real si existe el URI
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -131,10 +127,9 @@ fun ReceiptsScreen(
                                         model = sale.imageUri,
                                         contentDescription = "Comprobante de ${sale.productName}",
                                         modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop // Recorta la imagen para que rellene el cuadro estéticamente
+                                        contentScale = ContentScale.Crop
                                     )
                                 } else {
-                                    // Respaldo por si se guardó sin foto
                                     Icon(
                                         imageVector = Icons.Default.Image,
                                         contentDescription = "Comprobante sin imagen",
@@ -146,7 +141,6 @@ fun ReceiptsScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            // Información de la transferencia vinculada
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
                                     text = sale.productName,

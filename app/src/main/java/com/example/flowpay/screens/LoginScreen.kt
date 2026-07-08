@@ -45,7 +45,6 @@ import org.json.JSONObject
 fun LoginScreen(
     registeredEmail: String,
     registeredPassword: String,
-    // 🟢 MODIFICADO: Ahora propaga los datos de sesión completos para el saludo dinámico
     onLoginSuccess: (idUsuario: Int, nombreUsuario: String?, correoUsuario: String?) -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit
@@ -55,8 +54,25 @@ fun LoginScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val mostrarSugerenciaGoogle = remember(email) {
-        email.trim().equals("josueahyundai@gmail.com", ignoreCase = true)
+    var mostrarSugerenciaGoogle by remember { mutableStateOf(false) }
+
+    LaunchedEffect(email) {
+        val correoLimpio = email.trim()
+        if (correoLimpio.contains("@") && correoLimpio.contains(".")) {
+            try {
+                val respuesta = RetrofitClient.apiService.verificarProveedor(correoLimpio)
+                if (respuesta.isSuccessful && respuesta.body() != null) {
+                    mostrarSugerenciaGoogle = respuesta.body()?.esGoogle ?: false
+                } else {
+                    mostrarSugerenciaGoogle = false
+                }
+            } catch (e: Exception) {
+                Log.e("FlowPayTest", "Error consultando proveedor: ${e.message}")
+                mostrarSugerenciaGoogle = false
+            }
+        } else {
+            mostrarSugerenciaGoogle = false
+        }
     }
 
     val ejecutarLoginGoogle: suspend () -> Unit = {
@@ -86,7 +102,6 @@ fun LoginScreen(
                 val respuesta = RetrofitClient.apiService.loginConGoogle(tokenGooglePayload)
 
                 if (respuesta.isSuccessful && respuesta.body() != null) {
-                    // 🟢 CAPTURA DE DATOS DESDE EL LOGIN DE GOOGLE
                     val body = respuesta.body()
                     val idUsuarioAutenticado = body?.usuario?.id ?: 5
                     val nombreUsuario = body?.usuario?.nombre ?: "Estudiante"
@@ -95,7 +110,6 @@ fun LoginScreen(
                     Log.d("FlowPayTest", "🚀 Login con Google exitoso en Servidor. ID: $idUsuarioAutenticado")
                     Toast.makeText(context, "¡Bienvenido con Google!", Toast.LENGTH_SHORT).show()
 
-                    // 🚀 Mandamos los 3 parámetros para actualizar el MainActivity
                     onLoginSuccess(idUsuarioAutenticado, nombreUsuario, correoUsuario)
                 } else {
                     Log.e("FlowPayTest", "El servidor rechazó el Token de Google. Código: ${respuesta.code()}")
@@ -287,7 +301,6 @@ fun LoginScreen(
                                     if (respuesta.isSuccessful && respuesta.body() != null) {
                                         Log.d("FlowPayTest", "🚀 Login exitoso. Redireccionando sin crear jornada previa.")
 
-                                        // 🟢 CAPTURA DE DATOS REALES DESDE EL LOGIN MANUAL
                                         val body = respuesta.body()
                                         val idUsuarioAutenticado = body?.usuario?.id ?: 5
                                         val nombreUsuario = body?.usuario?.nombre ?: "Estudiante"
@@ -295,7 +308,6 @@ fun LoginScreen(
 
                                         Toast.makeText(context, "¡Bienvenido de vuelta!", Toast.LENGTH_SHORT).show()
 
-                                        // 🚀 Mandamos los 3 parámetros de regreso a MainActivity
                                         onLoginSuccess(idUsuarioAutenticado, nombreUsuario, correoUsuario)
                                     } else {
                                         Log.e("FlowPayTest", "❌ Rechazado por el backend. Código: ${respuesta.code()}")

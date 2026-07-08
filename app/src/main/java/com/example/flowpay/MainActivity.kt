@@ -60,16 +60,12 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-
                     var registeredName by remember { mutableStateOf("Estudiante") }
                     var registeredEmail by remember { mutableStateOf("") }
                     var registeredPassword by remember { mutableStateOf("") }
                     var hasCompletedSetup by remember { mutableStateOf(false) }
-
-                    // 🎯 CONTROL CENTRALIZADO MULTIUSUARIO DE ALUMNOS
                     var usuarioIdSesion by remember { mutableIntStateOf(0) }
                     var jornadaIdSesion by remember { mutableIntStateOf(0) }
-
                     val productCatalog = remember {
                         mutableStateListOf<Product>()
                     }
@@ -78,7 +74,6 @@ class MainActivity : ComponentActivity() {
                     var totalInvestmentToday by remember { mutableDoubleStateOf(0.0) }
                     val totalProfitToday by derivedStateOf { totalSalesToday - totalInvestmentToday }
                     val todaySales = remember { mutableStateListOf<SaleRecord>() }
-
                     val historyRecords = remember { mutableStateListOf<DailyRecord>() }
                     var hasSurveyedThisWeek by remember { mutableStateOf(false) }
                     var hasSurveyedThisMonth by remember { mutableStateOf(false) }
@@ -106,7 +101,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // Acepta el parámetro opcional de la URI de la foto
                     fun registerSale(productName: String, price: Double, method: String, imageUri: String? = null) {
                         totalSalesToday += price
                         val timeStr = SimpleDateFormat("hh:mm a", Locale("es", "MX")).format(Date())
@@ -161,11 +155,9 @@ class MainActivity : ComponentActivity() {
                             LoginScreen(
                                 registeredEmail = registeredEmail,
                                 registeredPassword = registeredPassword,
-                                // 🟢 ACTUALIZADO: Ahora recibe dinámicamente nombre y correo desde el login (manual o Google)
                                 onLoginSuccess = { idUsuarioRecibido, nombreUsuarioRecibido, correoUsuarioRecibido ->
                                     usuarioIdSesion = idUsuarioRecibido
 
-                                    // 🎯 Seteamos los datos reales entregados por tu base de datos en la nube
                                     if (!nombreUsuarioRecibido.isNullOrBlank()) registeredName = nombreUsuarioRecibido
                                     if (!correoUsuarioRecibido.isNullOrBlank()) registeredEmail = correoUsuarioRecibido
 
@@ -539,7 +531,7 @@ class MainActivity : ComponentActivity() {
                                     productCatalog.removeAll { it.id == productId }
                                 },
                                 onDashboardClick = { navController.navigate("dashboard") { popUpTo(0) } },
-                                onHistorialClick = { navController.navigate("history") { popUpTo(0) } }, // 🟢 CORREGIDO: Estructura limpia sin caracteres rotos
+                                onHistorialClick = { navController.navigate("history") { popUpTo(0) } },
                                 onPerfilClick = { navController.navigate("profile") { popUpTo(0) } }
                             )
                         }
@@ -547,9 +539,9 @@ class MainActivity : ComponentActivity() {
                         composable("privacy") {
                             PrivacyScreen(onNavigateBack = { navController.popBackStack() })
                         }
-                    } // Cierre correcto de NavHost
-                } // Cierre correcto de Surface
-            } // Cierre correcto de FlowPayTheme
-        } // Cierre correcto de setContent
-    } // Cierre correcto de onCreate
-} // Cierre correcto de MainActivity
+                    }
+                }
+            }
+        }
+    }
+}

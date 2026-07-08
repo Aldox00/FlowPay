@@ -33,8 +33,8 @@ import org.json.JSONObject
 
 @Composable
 fun RestablecerPasswordScreen(
-    tokenRecuperacion: String, // 🟢 Atrapa el token temporal que viene desde ForgotPasswordScreen
-    onPasswordChangedSuccess: () -> Unit // 🟢 Nos regresa al Login al terminar con éxito
+    tokenRecuperacion: String,
+    onPasswordChangedSuccess: () -> Unit
 ) {
     var nuevaContrasena by remember { mutableStateOf("") }
     var confirmarContrasena by remember { mutableStateOf("") }
@@ -90,10 +90,14 @@ fun RestablecerPasswordScreen(
 
                 FlowPayTextField(
                     value = nuevaContrasena,
-                    onValueChange = { input -> if (input.length <= 20 && input.all { it.isLetterOrDigit() }) nuevaContrasena = input },
-                    label = "Mínimo 6 caracteres",
+                    onValueChange = { input ->
+                        val textoLimpio = input.filter { it.isLetterOrDigit() }
+                        nuevaContrasena = textoLimpio.take(16)
+                    },
+                    label = "De 6 a 16 caracteres",
                     leadingIcon = Icons.Default.Lock,
                     isPassword = true,
+                    isError = nuevaContrasena.isNotEmpty() && nuevaContrasena.length < 6,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -107,10 +111,14 @@ fun RestablecerPasswordScreen(
 
                 FlowPayTextField(
                     value = confirmarContrasena,
-                    onValueChange = { input -> if (input.length <= 20 && input.all { it.isLetterOrDigit() }) confirmarContrasena = input },
+                    onValueChange = { input ->
+                        val textoLimpio = input.filter { it.isLetterOrDigit() }
+                        confirmarContrasena = textoLimpio.take(16)
+                    },
                     label = "Repite tu contraseña",
                     leadingIcon = Icons.Default.Lock,
                     isPassword = true,
+                    isError = confirmarContrasena.isNotEmpty() && confirmarContrasena != nuevaContrasena,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
@@ -136,7 +144,7 @@ fun RestablecerPasswordScreen(
 
                                     if (respuesta.isSuccessful) {
                                         Toast.makeText(context, "¡Contraseña actualizada con éxito!", Toast.LENGTH_LONG).show()
-                                        onPasswordChangedSuccess() // Desencadena volver al login
+                                        onPasswordChangedSuccess()
                                     } else {
                                         val errorBodyString = respuesta.errorBody()?.string()
                                         val msg = if (!errorBodyString.isNullOrBlank()) {

@@ -38,7 +38,7 @@ import java.util.Locale
 
 @Composable
 fun CloseDayScreen(
-    jornadaId: Int, // 🎯 NUEVO: Necesitamos pasar el ID de la jornada activa para asociar la encuesta
+    jornadaId: Int,
     totalSales: Double,
     totalInvestment: Double,
     netProfit: Double,
@@ -53,10 +53,9 @@ fun CloseDayScreen(
     val cardBackground = Color(0x1E, 0x29, 0x3B).copy(alpha = 0.65f)
 
     val scrollState = rememberScrollState()
-    val scope = rememberCoroutineScope() // 🎯 Scope para lanzar la llamada de red asíncrona de Retrofit
+    val scope = rememberCoroutineScope()
 
-    // Variables de estado locales por si quieres ligarlas a componentes UI en el futuro
-    var puntuacionApp by remember { mutableIntStateOf(5) } // Por defecto 5 estrellas
+    var puntuacionApp by remember { mutableIntStateOf(5) }
     var comentariosApp by remember { mutableStateOf("Jornada cerrada exitosamente") }
 
     val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
@@ -219,19 +218,16 @@ fun CloseDayScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // 🚀 BOTÓN CONFIGURADO CON ENVÍO PREVIO A LA TABLA DE ENCUESTAS
             Button(
                 onClick = {
                     scope.launch {
                         try {
-                            // 1. Armamos la petición con el modelo limpio que espera Node.js
                             val encuestaRequest = EncuestaRequest(
                                 jornada_id = jornadaId,
                                 puntuacion_app = puntuacionApp,
                                 comentarios = comentariosApp
                             )
 
-                            // 2. Ejecutamos el POST asíncrono
                             val response = RetrofitClient.apiService.registrarEncuesta(encuestaRequest)
 
                             if (response.isSuccessful && response.body()?.ok == true) {
@@ -242,7 +238,6 @@ fun CloseDayScreen(
                         } catch (e: Exception) {
                             Log.e("FlowPayTest", "❌ Error de red al guardar encuesta: ${e.message}")
                         } finally {
-                            // 3. Pase lo que pase con la encuesta, llamamos a la lógica original de cierre para no travar la App
                             onFinalizeDay()
                         }
                     }

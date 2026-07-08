@@ -169,8 +169,6 @@ fun InvestmentModalScreen(
                                         idJornadaFinal = respuesta.body()?.jornada_id ?: 0
                                         Log.d("FlowPayTest", "✅ Primera respuesta exitosa de Node.js. ID recibido: $idJornadaFinal")
 
-                                        // 🎯 BYPASS INTELIGENTE: Si el backend devolvió exitoso pero con ID 0, le volvemos a preguntar
-                                        // provocando que devuelva intencionalmente el error donde SÍ viene el ID real.
                                         if (idJornadaFinal == 0) {
                                             Log.d("FlowPayTest", "⚠️ ID en 0 detectado. Activando bypass para extraer ID real de la jornada...")
                                             val respuestaBypass = RetrofitClient.apiService.abrirJornada(req)

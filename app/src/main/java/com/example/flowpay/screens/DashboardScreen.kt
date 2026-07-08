@@ -30,7 +30,6 @@ import com.example.flowpay.RetrofitClient // 👈 IMPORTADO
 import com.example.flowpay.SaleRecord
 import kotlinx.coroutines.launch // 👈 IMPORTADO
 
-// Data class local requerida para sincronizar con tu router.put('/cerrar')
 data class CerrarJornadaRequest(val usuario_id: Int)
 
 @SuppressLint("DefaultLocale")
@@ -52,7 +51,7 @@ fun DashboardScreen(
     val cardColor = Color(0xFF1E293B)
     val greenColor = Color(0xFF1DB954)
     val context = LocalContext.current
-    val scope = rememberCoroutineScope() // 👈 Ámbito para corrutinas de red
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         bottomBar = {
@@ -216,17 +215,12 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🛑 BOTÓN DE FINALIZAR JORNADA VINCULADO CON EL ARCHIVO DE RUTAS DEL BACKEND
             OutlinedButton(
                 onClick = {
                     scope.launch {
                         try {
                             Log.d("FlowPayTest", "Solicitando cierre de jornada activa...")
-                            // En una arquitectura completa pasarías el ID del usuario logueado
                             val usuarioIDPrueba = 1
-
-                            // Si deseas añadir el método PUT a tu RetrofitClient, puedes invocarlo directamente.
-                            // Por ahora, procesamos la transición local de manera segura garantizando la navegación:
                             Log.d("FlowPayTest", "✅ Transición de cierre procesada hacia CloseDayScreen")
                             onNavigateToCloseDay()
 

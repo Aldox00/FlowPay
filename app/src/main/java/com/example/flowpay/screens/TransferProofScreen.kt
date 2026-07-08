@@ -42,9 +42,9 @@ import java.io.File
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun TransferProofScreen(
-    jornadaId: Int = 0, // 🎯 NUEVO: Recibe el parámetro para acoplarse con la navegación de tu MainActivity sin fallar
+    jornadaId: Int = 0,
     onNavigateBack: () -> Unit,
-    onProofValidated: (String) -> Unit // 🎯 MODIFICADO: Ahora sí envía la ruta (URI) de la imagen real obtenida
+    onProofValidated: (String) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -322,7 +322,6 @@ fun TransferProofScreen(
         if (imageUri != null) {
             Button(
                 onClick = {
-                    // 🎯 MODIFICADO: Convertimos la URI local a String y se la mandamos de vuelta al MainActivity
                     onProofValidated(imageUri.toString())
                 },
                 modifier = Modifier

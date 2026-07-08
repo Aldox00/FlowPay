@@ -23,6 +23,7 @@ fun FlowPayTextField(
     leadingIcon: ImageVector,
     modifier: Modifier = Modifier,
     isPassword: Boolean = false,
+    isError: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
@@ -30,12 +31,10 @@ fun FlowPayTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        // 🟢 Cambiado por legibilidad y un look grisáceo más integrado en modo oscuro
-        placeholder = { Text(text = label, color = Color.White.copy(alpha = 0.5f)) },
+        placeholder = { Text(text = label, color = Color.White.copy(alpha = 0.4f), maxLines = 1) },
         leadingIcon = { Icon(imageVector = leadingIcon, contentDescription = null, tint = Color(0xFF1DB954)) },
-
+        isError = isError,
         visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-
         trailingIcon = {
             if (isPassword) {
                 val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
@@ -48,16 +47,17 @@ fun FlowPayTextField(
         },
         keyboardOptions = keyboardOptions,
         singleLine = true,
+        maxLines = 1,
         shape = RoundedCornerShape(12.dp),
         modifier = modifier.fillMaxWidth(),
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = Color.White,
             unfocusedTextColor = Color.White,
             focusedBorderColor = Color(0xFF1DB954),
-            unfocusedBorderColor = Color(0x33FFFFFF), // 🟢 Bajamos un pelín el borde inactivo para que la tarjeta de arriba resalte más
+            unfocusedBorderColor = Color(0x33FFFFFF),
             cursorColor = Color.White,
-            focusedLabelColor = Color(0xFF1DB954),
-            unfocusedLabelColor = Color.White.copy(alpha = 0.5f)
+            errorBorderColor = MaterialTheme.colorScheme.error,
+            errorCursorColor = MaterialTheme.colorScheme.error
         )
     )
 }
