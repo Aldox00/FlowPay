@@ -31,7 +31,7 @@ fun FlowPayTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(text = label, color = Color.White.copy(alpha = 0.4f), maxLines = 1) },
+        placeholder = { Text(text = label, color = Color.White.copy(alpha = 0.75f), maxLines = 1) },
         leadingIcon = { Icon(imageVector = leadingIcon, contentDescription = null, tint = Color(0xFF1DB954)) },
         isError = isError,
         visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,

@@ -169,7 +169,7 @@ fun LoginScreen(
             Text(
                 text = "Controla tus ganancias de forma sencilla.",
                 fontSize = 14.sp,
-                color = Color.LightGray,
+                color = Color(0xFFE0E0E0),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
             )
@@ -216,7 +216,7 @@ fun LoginScreen(
                                     .background(Color.White, shape = RoundedCornerShape(6.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(text = "G", color = Color(0xFF1DB954), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                Text(text = "G", color = Color(0xFF1DB954), fontStyle = androidx.compose.ui.text.font.FontStyle.Normal, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             }
 
                             Spacer(modifier = Modifier.width(12.dp))
@@ -230,7 +230,7 @@ fun LoginScreen(
                                 )
                                 Text(
                                     text = "Continúa con tu cuenta de Google",
-                                    color = Color.LightGray,
+                                    color = Color(0xFFE0E0E0),
                                     fontSize = 11.sp
                                 )
                             }
@@ -242,10 +242,10 @@ fun LoginScreen(
 
                 Text(
                     text = "Correo Electrónico",
-                    color = Color.LightGray,
-                    fontSize = 13.sp,
+                    color = Color.White,
+                    fontSize = 14.sp,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 )
 
                 FlowPayTextField(
@@ -262,10 +262,10 @@ fun LoginScreen(
 
                 Text(
                     text = "Contraseña",
-                    color = Color.LightGray,
-                    fontSize = 13.sp,
+                    color = Color.White,
+                    fontSize = 14.sp,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 )
 
                 FlowPayTextField(
@@ -280,7 +280,7 @@ fun LoginScreen(
 
                 Text(
                     text = "¿Olvidaste tu contraseña?",
-                    color = Color.LightGray,
+                    color = Color(0xFFECEFF1),
                     fontSize = 12.sp,
                     modifier = Modifier
                         .align(Alignment.End)
@@ -350,7 +350,7 @@ fun LoginScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-                Text(text = "o continuar con", color = Color.Gray, fontSize = 13.sp)
+                Text(text = "o continuar con", color = Color(0xFFB0BEC5), fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedButton(
@@ -376,7 +376,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "¿No tienes una cuenta? ", color = Color.LightGray, fontSize = 13.sp)
+                    Text(text = "¿No tienes una cuenta? ", color = Color(0xFFE0E0E0), fontSize = 13.sp) // 🟢 Gris más claro
                     Text(
                         text = "Crear cuenta",
                         color = Color(0xFF1DB954),

@@ -32,9 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flowpay.R
 import com.example.flowpay.components.FlowPayTextField
-import com.example.flowpay.RetrofitClient // 👈 IMPORTANTE
-import com.example.flowpay.RegisterRequest // 👈 IMPORTANTE
-import kotlinx.coroutines.launch // 👈 PARA LLAMADAS ASÍNCRONAS
+import com.example.flowpay.RetrofitClient
+import com.example.flowpay.RegisterRequest
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(
@@ -53,7 +53,7 @@ fun RegisterScreen(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val scope = rememberCoroutineScope() // 👈 Ámbito para disparar la petición del backend
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -117,12 +117,12 @@ fun RegisterScreen(
             Text(
                 text = "Únete y controla tus ganancias diarias.",
                 fontSize = 14.sp,
-                color = Color.LightGray,
+                color = Color(0xFFE0E0E0),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            Text(text = "Nombre Completo", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
+            Text(text = "Nombre Completo", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
                 value = initialName,
                 onValueChange = { input ->
@@ -136,7 +136,7 @@ fun RegisterScreen(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            Text(text = "Correo Electrónico", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
+            Text(text = "Correo Electrónico", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
                 value = initialEmail,
                 onValueChange = { input ->
@@ -151,7 +151,7 @@ fun RegisterScreen(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            Text(text = "Contraseña", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
+            Text(text = "Contraseña", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
                 value = initialPassword,
                 onValueChange = { input ->
@@ -166,7 +166,8 @@ fun RegisterScreen(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            Text(text = "Confirmar Contraseña", color = Color.LightGray, fontSize = 13.sp, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
+            // 🟢 CORREGIDO: Título Confirmar Contraseña
+            Text(text = "Confirmar Contraseña", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
                 value = initialConfirmPassword,
                 onValueChange = { input ->
@@ -192,14 +193,14 @@ fun RegisterScreen(
                     onCheckedChange = { onPrivacyAcceptedChange(it) },
                     colors = CheckboxDefaults.colors(
                         checkedColor = Color(0xFF1DB954),
-                        uncheckedColor = Color.LightGray,
+                        uncheckedColor = Color(0xFFB0BEC5),
                         checkmarkColor = Color.White
                     )
                 )
 
                 Text(
                     text = "He leído y acepto el ",
-                    color = Color.LightGray,
+                    color = Color(0xFFE0E0E0),
                     fontSize = 13.sp,
                     modifier = Modifier.padding(start = 4.dp)
                 )
@@ -213,7 +214,6 @@ fun RegisterScreen(
                 )
             }
 
-            // 🟢 BOTÓN DE REGISTRO CON CONEXIÓN AL BACKEND AÑADIDO
             Button(
                 onClick = {
                     if (initialName.isNotBlank() && initialEmail.isNotBlank() && initialPassword.isNotBlank()) {
@@ -225,7 +225,6 @@ fun RegisterScreen(
                             if (initialPassword.length >= 8) {
                                 if (initialPassword == initialConfirmPassword) {
 
-                                    // 🚀 AQUÍ EMPIEZA LA CONEXIÓN REAL AL SERVIDOR
                                     val datosRegistro = RegisterRequest(
                                         nombre = initialName.trim(),
                                         correo = initialEmail.trim(),
@@ -241,7 +240,6 @@ fun RegisterScreen(
                                                 Log.d("FlowPayTest", "✅ Registrado con éxito en la Base de Datos")
                                                 Toast.makeText(context, "¡Cuenta creada con éxito!", Toast.LENGTH_SHORT).show()
 
-                                                // Te manda al login pasándole los datos reales
                                                 onAccountCreated(initialName, initialEmail, initialPassword)
                                             } else {
                                                 val errorString = respuesta.errorBody()?.string()
@@ -282,7 +280,7 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "¿Ya tienes una cuenta? ", color = Color.LightGray, fontSize = 13.sp)
+                Text(text = "¿Ya tienes una cuenta? ", color = Color(0xFFE0E0E0), fontSize = 13.sp)
                 Text(
                     text = "Iniciar sesión",
                     color = Color(0xFF1DB954),
