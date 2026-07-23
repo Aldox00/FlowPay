@@ -190,15 +190,21 @@ class MainActivity : ComponentActivity() {
                                     if (!nombreUsuarioRecibido.isNullOrBlank()) registeredName = nombreUsuarioRecibido
                                     if (!correoUsuarioRecibido.isNullOrBlank()) registeredEmail = correoUsuarioRecibido
 
-                                    fetchUserProductsFromBackend(idUsuarioRecibido)
-
-                                    if (hasCompletedSetup) {
-                                        navController.navigate("active_products") {
-                                            popUpTo("login") { inclusive = true }
+                                    when {
+                                        jornadaIdSesion > 0 -> {
+                                            navController.navigate("dashboard") {
+                                                popUpTo("login") { inclusive = true }
+                                            }
                                         }
-                                    } else {
-                                        navController.navigate("initial_setup") {
-                                            popUpTo("login") { inclusive = true }
+                                        hasCompletedSetup -> {
+                                            navController.navigate("active_products") {
+                                                popUpTo("login") { inclusive = true }
+                                            }
+                                        }
+                                        else -> {
+                                            navController.navigate("initial_setup") {
+                                                popUpTo("login") { inclusive = true }
+                                            }
                                         }
                                     }
                                 },
@@ -461,6 +467,7 @@ class MainActivity : ComponentActivity() {
                                             totalInvestmentToday = 0.0
                                             jornadaIdSesion = 0
                                             usuarioIdSesion = 0
+                                            hasCompletedSetup = false
                                             productCatalog.clear()
                                             todaySales.clear()
 
@@ -566,12 +573,6 @@ class MainActivity : ComponentActivity() {
                                 onMisProductosClick = { navController.navigate("my_products") },
                                 onPrivacyClick = { navController.navigate("privacy") },
                                 onLogoutClick = {
-                                    totalSalesToday = 0.0
-                                    totalInvestmentToday = 0.0
-                                    jornadaIdSesion = 0
-                                    usuarioIdSesion = 0
-                                    productCatalog.clear()
-                                    todaySales.clear()
                                     navController.navigate("login") { popUpTo(0) }
                                 },
                                 onDashboardClick = { navController.navigate("dashboard") { popUpTo(0) } },
