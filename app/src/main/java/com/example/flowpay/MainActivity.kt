@@ -3,6 +3,7 @@ package com.example.flowpay
 import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -60,6 +61,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+                    val scope = rememberCoroutineScope()
+
                     var registeredName by remember { mutableStateOf("Estudiante") }
                     var registeredEmail by remember { mutableStateOf("") }
                     var registeredPassword by remember { mutableStateOf("") }
@@ -106,6 +109,31 @@ class MainActivity : ComponentActivity() {
                         val timeStr = SimpleDateFormat("hh:mm a", Locale("es", "MX")).format(Date())
                         todaySales.add(SaleRecord(productName, price, method, timeStr, imageUri))
                         syncTodayHistory()
+                    }
+
+                    fun fetchUserProductsFromBackend(userId: Int) {
+
+                        val targetUserId = if (userId > 0) userId else 85
+                        scope.launch {
+                            try {
+                                Log.d("FlowPayTest", "Solicitando catálogo a MySQL para usuario ID: $targetUserId...")
+                                val respuesta = RetrofitClient.apiService.obtenerProductosPorUsuario(targetUserId)
+
+                                if (respuesta.isSuccessful && respuesta.body()?.ok == true) {
+                                    val listaProductos = respuesta.body()?.productos ?: emptyList()
+                                    productCatalog.clear()
+
+                                    listaProductos.forEach { prod ->
+                                        productCatalog.add(Product(prod.id, prod.nombre, prod.precioFinal))
+                                    }
+                                    Log.d("FlowPayTest", "✅ Catálogo cargado desde la nube: ${productCatalog.size} productos.")
+                                } else {
+                                    Log.e("FlowPayTest", "⚠️ La API respondió sin productos o con error.")
+                                }
+                            } catch (e: Exception) {
+                                Log.e("FlowPayTest", "💥 Error de red al descargar productos: ${e.message}")
+                            }
+                        }
                     }
 
                     var tempRegName by remember { mutableStateOf("") }
@@ -155,11 +183,14 @@ class MainActivity : ComponentActivity() {
                             LoginScreen(
                                 registeredEmail = registeredEmail,
                                 registeredPassword = registeredPassword,
+                                onNavigateBack = { navController.popBackStack() },
                                 onLoginSuccess = { idUsuarioRecibido, nombreUsuarioRecibido, correoUsuarioRecibido ->
                                     usuarioIdSesion = idUsuarioRecibido
 
                                     if (!nombreUsuarioRecibido.isNullOrBlank()) registeredName = nombreUsuarioRecibido
                                     if (!correoUsuarioRecibido.isNullOrBlank()) registeredEmail = correoUsuarioRecibido
+
+                                    fetchUserProductsFromBackend(idUsuarioRecibido)
 
                                     if (hasCompletedSetup) {
                                         navController.navigate("active_products") {
@@ -198,15 +229,24 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("initial_setup") {
+                            val idAEnviar = if (usuarioIdSesion > 0) usuarioIdSesion else 85
+
                             InitialSetupScreen(
+                                currentUserId = idAEnviar,
                                 onNavigateBack = { navController.popBackStack() },
-                                onContinue = { p1Name, p1Price, p2Name, p2Price ->
-                                    productCatalog.clear()
-                                    productCatalog.add(Product(1, p1Name, p1Price.toDoubleOrNull() ?: 0.0))
-                                    if (p2Name.isNotBlank()) {
-                                        productCatalog.add(Product(2, p2Name, p2Price.toDoubleOrNull() ?: 0.0))
-                                    }
+                                onContinue = { p1Id, p1Name, p1Price, p2Id, p2Name, p2Price ->
                                     hasCompletedSetup = true
+
+                                    val price1 = p1Price.toDoubleOrNull() ?: 0.0
+                                    val price2 = p2Price.toDoubleOrNull() ?: 0.0
+
+                                    if (p1Name.isNotBlank() && p1Id > 0) {
+                                        productCatalog.add(Product(id = p1Id, name = p1Name, price = price1))
+                                    }
+                                    if (p2Name.isNotBlank() && p2Id > 0) {
+                                        productCatalog.add(Product(id = p2Id, name = p2Name, price = price2))
+                                    }
+
                                     navController.navigate("active_products") {
                                         popUpTo("initial_setup") { inclusive = true }
                                     }
@@ -215,8 +255,16 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("active_products") {
+                            val idAEnviar = if (usuarioIdSesion > 0) usuarioIdSesion else 85
+
                             ActiveProductsScreen(
+                                userId = idAEnviar,
                                 products = productCatalog,
+                                onRefreshProducts = { id ->
+                                    if (productCatalog.isEmpty()) {
+                                        fetchUserProductsFromBackend(id)
+                                    }
+                                },
                                 onNavigateBack = { navController.navigate("login") { popUpTo(0) } },
                                 onContinue = { selectedProducts ->
                                     navController.navigate("investment_modal")
@@ -258,18 +306,21 @@ class MainActivity : ComponentActivity() {
                             RegisterSaleScreen(
                                 products = productCatalog,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToSelectPayment = { productName, productPrice ->
-                                    navController.navigate("select_payment/$productName/$productPrice")
+                                onNavigateToSelectPayment = { prodId, productName, productPrice ->
+                                    navController.navigate("select_payment/$prodId/$productName/$productPrice")
                                 }
                             )
                         }
 
-                        composable("select_payment/{productName}/{productPrice}") { backStackEntry ->
+                        composable("select_payment/{productId}/{productName}/{productPrice}") { backStackEntry ->
+                            val productIdStr = backStackEntry.arguments?.getString("productId") ?: "1"
+                            val productIdInt = productIdStr.toIntOrNull() ?: 1
                             val productName = backStackEntry.arguments?.getString("productName") ?: "Producto"
                             val productPrice = backStackEntry.arguments?.getString("productPrice") ?: "0.00"
 
                             SelectPaymentScreen(
                                 jornadaIdActiva = jornadaIdSesion,
+                                productId = productIdInt,
                                 productName = productName,
                                 productPrice = productPrice,
                                 onNavigateBack = { navController.popBackStack() },
@@ -281,12 +332,14 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onNavigateToTransferProof = {
-                                    navController.navigate("transfer_proof/$productName/$productPrice")
+                                    navController.navigate("transfer_proof/$productIdInt/$productName/$productPrice")
                                 }
                             )
                         }
 
-                        composable("transfer_proof/{productName}/{productPrice}") { backStackEntry ->
+                        composable("transfer_proof/{productId}/{productName}/{productPrice}") { backStackEntry ->
+                            val productIdStr = backStackEntry.arguments?.getString("productId") ?: "1"
+                            val productIdInt = productIdStr.toIntOrNull() ?: 1
                             val productName = backStackEntry.arguments?.getString("productName") ?: "Producto"
                             val productPrice = backStackEntry.arguments?.getString("productPrice") ?: "0.00"
 
@@ -294,10 +347,42 @@ class MainActivity : ComponentActivity() {
                                 jornadaId = jornadaIdSesion,
                                 onNavigateBack = { navController.popBackStack() },
                                 onProofValidated = { uriReal ->
-                                    val price = productPrice.toDoubleOrNull() ?: 0.0
-                                    registerSale(productName, price, "Transferencia", uriReal)
-                                    navController.navigate("dashboard") {
-                                        popUpTo("dashboard") { inclusive = true }
+                                    val precioNumero = productPrice.toDoubleOrNull() ?: 0.0
+                                    val jornadaFinal = if (jornadaIdSesion > 0) jornadaIdSesion else 1
+
+                                    scope.launch {
+                                        try {
+                                            Log.d("FlowPayTest", "Enviando venta en Transferencia a Node.js - Jornada: $jornadaFinal, ProdID: $productIdInt, Total: $precioNumero")
+
+                                            val detalleUnico = DetalleVentaRequest(
+                                                producto_id = productIdInt,
+                                                cantidad = 1,
+                                                precio_unitario = precioNumero
+                                            )
+
+                                            val ventaReq = VentaRequest(
+                                                jornada_id = jornadaFinal,
+                                                total = precioNumero,
+                                                tipo_pago = "Transferencia",
+                                                detalles = listOf(detalleUnico)
+                                            )
+
+                                            val respuesta = RetrofitClient.apiService.registrarVenta(ventaReq)
+
+                                            if (respuesta.isSuccessful && respuesta.body()?.ok == true) {
+                                                Log.d("FlowPayTest", "✅ ¡Venta por Transferencia registrada con éxito en MySQL!")
+                                                registerSale(productName, precioNumero, "Transferencia", uriReal)
+                                            } else {
+                                                val errorBody = respuesta.errorBody()?.string() ?: ""
+                                                Log.e("FlowPayTest", "❌ El servidor rechazó la venta por transferencia: $errorBody")
+                                            }
+                                        } catch (e: Exception) {
+                                            Log.e("FlowPayTest", "💥 Fallo de red al registrar venta por transferencia: ${e.message}")
+                                        } finally {
+                                            navController.navigate("dashboard") {
+                                                popUpTo("dashboard") { inclusive = true }
+                                            }
+                                        }
                                     }
                                 }
                             )
@@ -306,9 +391,10 @@ class MainActivity : ComponentActivity() {
                         composable("products") {
                             ProductsScreen(
                                 products = productCatalog,
-                                onNavigateToSelectPayment = { productName, productPrice ->
-                                    navController.navigate("select_payment/$productName/$productPrice")
-                                },
+                                onNavigateToSelectPayment = { prodId, productName, productPrice ->
+                                    android.util.Log.d("FlowPayTest", "👉 Click en Producto: ID=$prodId | Nombre=$productName | Precio=$productPrice")
+                                    navController.navigate("select_payment/$prodId/$productName/$productPrice")                                },
+                                onNavigateToMyProducts = { navController.navigate("my_products") }, // 👈 NUEVO
                                 onDashboardClick = { navController.navigate("dashboard") { popUpTo(0) } },
                                 onHistorialClick = { navController.navigate("history") { popUpTo(0) } },
                                 onPerfilClick = { navController.navigate("profile") { popUpTo(0) } }
@@ -316,7 +402,6 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("close_day") {
-                            val scope = rememberCoroutineScope()
                             val context = androidx.compose.ui.platform.LocalContext.current
 
                             CloseDayScreen(
@@ -376,6 +461,7 @@ class MainActivity : ComponentActivity() {
                                             totalInvestmentToday = 0.0
                                             jornadaIdSesion = 0
                                             usuarioIdSesion = 0
+                                            productCatalog.clear()
                                             todaySales.clear()
 
                                             navController.navigate("landing") {
@@ -484,6 +570,7 @@ class MainActivity : ComponentActivity() {
                                     totalInvestmentToday = 0.0
                                     jornadaIdSesion = 0
                                     usuarioIdSesion = 0
+                                    productCatalog.clear()
                                     todaySales.clear()
                                     navController.navigate("login") { popUpTo(0) }
                                 },
@@ -508,12 +595,14 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("my_products") {
+                            val idAEnviar = if (usuarioIdSesion > 0) usuarioIdSesion else 85
+
                             MyProductsScreen(
+                                currentUserId = idAEnviar,
                                 products = productCatalog,
                                 onNavigateBack = { navController.popBackStack() },
-                                onAddProductClick = { name, price, imageUri ->
-                                    val newId = (productCatalog.maxOfOrNull { it.id } ?: 0) + 1
-                                    productCatalog.add(Product(newId, name, price, imageUri = imageUri))
+                                onAddProductClick = { realId, name, price, imageUri ->
+                                    productCatalog.add(Product(realId, name, price, imageUri = imageUri))
                                 },
                                 onEditProductClick = { productId, newName, newPrice, imageUri ->
                                     val index = productCatalog.indexOfFirst { it.id == productId }

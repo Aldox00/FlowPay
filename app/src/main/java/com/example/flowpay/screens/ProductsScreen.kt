@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,7 +33,8 @@ import com.example.flowpay.Product
 @Composable
 fun ProductsScreen(
     products: List<Product>,
-    onNavigateToSelectPayment: (String, String) -> Unit,
+    onNavigateToSelectPayment: (productId: Int, productName: String, productPrice: String) -> Unit,
+    onNavigateToMyProducts: () -> Unit,
     onDashboardClick: () -> Unit,
     onHistorialClick: () -> Unit,
     onPerfilClick: () -> Unit,
@@ -54,9 +56,32 @@ fun ProductsScreen(
 
         Column(modifier = Modifier.fillMaxSize().systemBarsPadding().padding(bottom = 84.dp)) {
 
-            Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)) {
-                Text(text = "Venta Rápida", color = whiteText, fontSize = 32.sp, fontWeight = FontWeight.ExtraBold)
-                Text(text = "Toca un producto para registrar la venta", color = secondaryText.copy(alpha = 0.8f), fontSize = 15.sp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 24.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = "Venta Rápida", color = whiteText, fontSize = 32.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(text = "Toca un producto para registrar la venta", color = secondaryText.copy(alpha = 0.8f), fontSize = 15.sp)
+                }
+
+                IconButton(
+                    onClick = onNavigateToMyProducts,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(primaryGreen.copy(alpha = 0.12f))
+                        .border(1.dp, primaryGreen.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Administrar productos",
+                        tint = primaryGreen,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
 
             LazyColumn(
@@ -70,7 +95,8 @@ fun ProductsScreen(
                             .clip(RoundedCornerShape(16.dp))
                             .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
                             .clickable {
-                                onNavigateToSelectPayment(product.name, product.price.toString())
+                                // 🟢 ENVÍA EL ID REAL DIRECTAMENTE SIN BUSCAR POR NOMBRE
+                                onNavigateToSelectPayment(product.id, product.name, product.price.toString())
                             },
                         colors = CardDefaults.cardColors(containerColor = cardBackground)
                     ) {

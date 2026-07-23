@@ -26,7 +26,7 @@ import com.example.flowpay.Product
 fun RegisterSaleScreen(
     products: List<Product>,
     onNavigateBack: () -> Unit,
-    onNavigateToSelectPayment: (String, String) -> Unit,
+    onNavigateToSelectPayment: (productId: Int, productName: String, productPrice: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val backgroundColor = Color(0x0F, 0x17, 0x2A)
@@ -69,7 +69,7 @@ fun RegisterSaleScreen(
                         .clip(RoundedCornerShape(16.dp))
                         .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
                         .clickable {
-                            onNavigateToSelectPayment(product.name, product.price.toString())
+                            onNavigateToSelectPayment(product.id, product.name, product.price.toString())
                         },
                     colors = CardDefaults.cardColors(containerColor = cardBackground)
                 ) {
@@ -105,7 +105,7 @@ fun RegisterSaleScreen(
                         }
 
                         Button(
-                            onClick = { onNavigateToSelectPayment(product.name, product.price.toString()) },
+                            onClick = { onNavigateToSelectPayment(product.id, product.name, product.price.toString()) },
                             colors = ButtonDefaults.buttonColors(containerColor = primaryGreen),
                             shape = RoundedCornerShape(8.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),

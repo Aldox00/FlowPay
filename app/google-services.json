@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "674577932559-70bkufnjfuii8tft36rb9c2tmd3fip6v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flowpay",
+            "certificate_hash": "f209dcf0bf0179318732938a553e8805d7d6ed9a"
+          }
+        },
+        {
           "client_id": "674577932559-jdhjp7m2ojjd6o8aaua6tlep4tldhfn8.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

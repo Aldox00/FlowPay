@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -47,7 +49,8 @@ fun LoginScreen(
     registeredPassword: String,
     onLoginSuccess: (idUsuario: Int, nombreUsuario: String?, correoUsuario: String?) -> Unit,
     onNavigateToRegister: () -> Unit,
-    onNavigateToForgotPassword: () -> Unit
+    onNavigateToForgotPassword: () -> Unit,
+    onNavigateBack: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -134,6 +137,22 @@ fun LoginScreen(
             contentScale = ContentScale.Crop
         )
 
+        IconButton(
+            onClick = onNavigateBack,
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(start = 12.dp, top = 8.dp)
+                .align(Alignment.TopStart)
+                .testTag("login_back_button")
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Regresar al Landing",
+                tint = Color.White,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -168,8 +187,8 @@ fun LoginScreen(
 
             Text(
                 text = "Controla tus ganancias de forma sencilla.",
-                fontSize = 14.sp,
-                color = Color(0xFFE0E0E0),
+                fontSize = 16.sp,
+                color = Color(0xFFF5F5F5),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
             )
@@ -243,9 +262,9 @@ fun LoginScreen(
                 Text(
                     text = "Correo Electrónico",
                     color = Color.White,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Bold
                 )
 
                 FlowPayTextField(
@@ -280,8 +299,8 @@ fun LoginScreen(
 
                 Text(
                     text = "¿Olvidaste tu contraseña?",
-                    color = Color(0xFFECEFF1),
-                    fontSize = 12.sp,
+                    color = Color(0xFFF5F5F5),
+                    fontSize = 13.sp,
                     modifier = Modifier
                         .align(Alignment.End)
                         .padding(bottom = 24.dp)
@@ -350,7 +369,7 @@ fun LoginScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-                Text(text = "o continuar con", color = Color(0xFFB0BEC5), fontSize = 13.sp)
+                Text(text = "o continuar con", color = Color(0xFFCFD8DC), fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedButton(
@@ -376,7 +395,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "¿No tienes una cuenta? ", color = Color(0xFFE0E0E0), fontSize = 13.sp) // 🟢 Gris más claro
+                    Text(text = "¿No tienes una cuenta? ", color = Color(0xFFE0E0E0), fontSize = 13.sp)
                     Text(
                         text = "Crear cuenta",
                         color = Color(0xFF1DB954),

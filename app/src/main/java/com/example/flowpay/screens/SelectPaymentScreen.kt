@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SelectPaymentScreen(
     jornadaIdActiva: Int,
+    productId: Int = 1,
     productName: String,
     productPrice: String,
     onNavigateBack: () -> Unit,
@@ -106,28 +107,21 @@ fun SelectPaymentScreen(
             greenColor = greenColor,
             cardColor = cardColor,
             onClick = {
-                if (jornadaIdActiva <= 0) {
-                    Toast.makeText(context, "Error: No hay una jornada activa válida. Reinicia sesión.", Toast.LENGTH_LONG).show()
-                    Log.e("FlowPayTest", "🛑 Abortando venta: jornadaIdActiva es $jornadaIdActiva")
-                    return@PaymentMethodRow
-                }
-
+                val jornadaFinal = if (jornadaIdActiva > 0) jornadaIdActiva else 1
                 val precioNumero = productPrice.toDoubleOrNull() ?: 0.0
-
+                val idProductoFinal = productId
                 scope.launch {
                     try {
-                        Log.d("FlowPayTest", "Enviando venta en Efectivo al Backend con Jornada ID: $jornadaIdActiva...")
-
-                        val idProductoDinamico = if (productName == "Hot Cakes") 1 else 2
+                        Log.d("FlowPayTest", "Enviando venta en Efectivo a Node.js - Jornada: $jornadaFinal, ProdID: $idProductoFinal, Total: $precioNumero")
 
                         val detalleUnico = DetalleVentaRequest(
-                            producto_id = idProductoDinamico,
+                            producto_id = idProductoFinal,
                             cantidad = 1,
                             precio_unitario = precioNumero
                         )
 
                         val ventaReq = VentaRequest(
-                            jornada_id = jornadaIdActiva,
+                            jornada_id = jornadaFinal,
                             total = precioNumero,
                             tipo_pago = "Efectivo",
                             detalles = listOf(detalleUnico)
@@ -135,18 +129,18 @@ fun SelectPaymentScreen(
 
                         val respuesta = RetrofitClient.apiService.registrarVenta(ventaReq)
 
-                        if (respuesta.isSuccessful) {
-                            Log.d("FlowPayTest", "✅ ¡Venta y detalles insertados con éxito en MySQL!")
-                            Toast.makeText(context, "¡Venta guardada en la Base de Datos!", Toast.LENGTH_SHORT).show()
+                        if (respuesta.isSuccessful && respuesta.body()?.ok == true) {
+                            Log.d("FlowPayTest", "✅ ¡Venta registrada con éxito en MySQL!")
+                            Toast.makeText(context, "¡Venta guardada exitosamente!", Toast.LENGTH_SHORT).show()
                             onCashSelected()
                         } else {
                             val errorBody = respuesta.errorBody()?.string() ?: ""
-                            Log.e("FlowPayTest", "❌ El servidor rechazó la transacción: $errorBody")
-                            Toast.makeText(context, "El servidor rechazó la venta.", Toast.LENGTH_LONG).show()
+                            Log.e("FlowPayTest", "❌ El servidor rechazó la venta: $errorBody")
+                            Toast.makeText(context, "Servidor rechazó venta: $errorBody", Toast.LENGTH_LONG).show()
                         }
                     } catch (e: Exception) {
                         Log.e("FlowPayTest", "💥 Fallo de red al intentar registrar venta: ${e.message}")
-                        Toast.makeText(context, "Error de conexión con Node.js", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Error de conexión con el servidor", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

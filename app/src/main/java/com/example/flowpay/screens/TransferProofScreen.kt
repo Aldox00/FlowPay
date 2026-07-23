@@ -331,7 +331,7 @@ fun TransferProofScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = greenColor),
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Text(text = "Validar y Continuar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(text = "Continuar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
     }

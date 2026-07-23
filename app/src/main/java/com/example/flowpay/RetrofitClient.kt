@@ -8,9 +8,11 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.Response
 import com.example.flowpay.screens.JornadaRequest
+import kotlinx.serialization.Serializable
 import java.util.concurrent.TimeUnit
 
 object Constants {
@@ -58,6 +60,12 @@ interface FlowPayApiService {
 
     @POST("producto/crear")
     suspend fun crearProducto(@Body request: ProductRequest): Response<GenericProductResponse>
+
+    // 🟢 CORREGIDO: Apunta a /activos/ para no traer el historial antiguo repetido
+    @GET("producto/activos/{usuario_id}")
+    suspend fun obtenerProductosPorUsuario(
+        @Path("usuario_id") usuarioId: Int
+    ): Response<CatalogResponse>
 
     @POST("jornada/abrir")
     suspend fun abrirJornada(@Body request: JornadaRequest): Response<GenericJornadaResponse>
@@ -114,10 +122,28 @@ data class ProductRequest(
     val precio_venta: Double
 )
 
+data class CatalogResponse(
+    val ok: Boolean,
+    val productos: List<ProductoResponse>?
+)
+
+data class ProductoResponse(
+    val id: Int,
+    val nombre: String,
+    @SerializedName("precio")
+    val precio_venta: Double? = null,
+    val precio_unitario: Double? = null
+) {
+    val precioFinal: Double
+        get() = precio_venta ?: precio_unitario ?: 0.0
+}
+
+@Serializable
 data class GenericProductResponse(
     val ok: Boolean,
-    val msg: String?,
-    val producto_id: Int?
+    val msg: String? = null,
+    val id: Int? = null,
+    val producto_id: Int? = null
 )
 
 data class GenericJornadaResponse(
@@ -139,17 +165,27 @@ data class GenericEncuestaResponse(
 
 data class VentaRequest(
     val jornada_id: Int,
+    val producto_id: Int? = null,
+    val cantidad: Int? = 1,
+    val precio_unitario: Double? = null,
     val total: Double,
+    @SerializedName("tipo_pago")
     val tipo_pago: String,
+    @SerializedName("metodo_pago")
+    val metodo_pago: String = tipo_pago,
     @SerializedName("detalles")
-    val detalles: List<DetalleVentaRequest>
+    val detalles: List<DetalleVentaRequest>? = null,
+    @SerializedName("productos")
+    val productos: List<DetalleVentaRequest>? = detalles
 )
 
 data class DetalleVentaRequest(
     val producto_id: Int,
-    val cantidad: Int,
+    val cantidad: Int = 1,
     @SerializedName("precio_unitario")
-    val precio_unitario: Double
+    val precio_unitario: Double,
+    @SerializedName("precio")
+    val precio: Double = precio_unitario
 )
 
 data class GenericVentaResponse(

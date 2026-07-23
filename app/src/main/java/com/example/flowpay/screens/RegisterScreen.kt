@@ -116,13 +116,13 @@ fun RegisterScreen(
 
             Text(
                 text = "Únete y controla tus ganancias diarias.",
-                fontSize = 14.sp,
-                color = Color(0xFFE0E0E0),
+                fontSize = 16.sp,
+                color = Color(0xFFF5F5F5),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            Text(text = "Nombre Completo", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
+            Text(text = "Nombre Completo", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
                 value = initialName,
                 onValueChange = { input ->
@@ -166,7 +166,6 @@ fun RegisterScreen(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            // 🟢 CORREGIDO: Título Confirmar Contraseña
             Text(text = "Confirmar Contraseña", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
             FlowPayTextField(
                 value = initialConfirmPassword,
@@ -200,15 +199,15 @@ fun RegisterScreen(
 
                 Text(
                     text = "He leído y acepto el ",
-                    color = Color(0xFFE0E0E0),
-                    fontSize = 13.sp,
+                    color = Color(0xFFF5F5F5),
+                    fontSize = 14.sp,
                     modifier = Modifier.padding(start = 4.dp)
                 )
 
                 Text(
                     text = "Aviso de Privacidad.",
-                    color = Color(0xFF1DB954),
-                    fontSize = 13.sp,
+                    color = Color(0xFF2ECC71),
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { onPrivacyClick() }
                 )

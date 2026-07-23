@@ -1,8 +1,8 @@
 package com.example.flowpay.screens
 
 import android.net.Uri
-import android.util.Log // 👈 IMPORTADO PARA MONITOREAR CON LOGCAT
-import android.widget.Toast // 👈 IMPORTADO PARA AVISARTE SI CONECTÓ
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -35,22 +35,23 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext // 👈 IMPORTADO
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.flowpay.Product
-import com.example.flowpay.ProductRequest // 👈 IMPORTADO DESDE TU RETROFITCLIENT
-import com.example.flowpay.RetrofitClient // 👈 IMPORTADO DESDE TU RETROFITCLIENT
-import kotlinx.coroutines.launch // 👈 IMPORTADO PARA CORRUTINAS ASÍNCRONAS
+import com.example.flowpay.ProductRequest
+import com.example.flowpay.RetrofitClient
+import kotlinx.coroutines.launch
 
 @Composable
 fun MyProductsScreen(
+    currentUserId: Int = 15,
     products: List<Product>,
     onNavigateBack: () -> Unit,
-    onAddProductClick: (String, Double, String?) -> Unit,
+    onAddProductClick: (id: Int, name: String, price: Double, imageUri: String?) -> Unit, // 👈 Se agrega id: Int
     onEditProductClick: (Int, String, Double, String?) -> Unit,
     onDeleteProductClick: (Int) -> Unit,
     onDashboardClick: () -> Unit,
@@ -58,9 +59,8 @@ fun MyProductsScreen(
     onPerfilClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current // 👈 Obtenemos contexto para los Toasts
-    val scope = rememberCoroutineScope() // 👈 Lanzador de peticiones HTTP en segundo plano
-
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val backgroundColor = Color(0x0F, 0x17, 0x2A)
     val primaryGreen = Color(0x22, 0xC5, 0x5E)
     val whiteText = Color(0xFF, 0xFF, 0xFF)
@@ -68,16 +68,12 @@ fun MyProductsScreen(
     val cardBackground = Color(0x1E, 0x29, 0x3B).copy(alpha = 0.65f)
     val bottomNavBg = Color(0x0B, 0x0F, 0x19)
     val deleteRed = Color(0xEF, 0x44, 0x44)
-
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
-
     var tempName by remember { mutableStateOf("") }
     var tempPrice by remember { mutableStateOf("") }
     var editingProductId by remember { mutableStateOf<Int?>(null) }
-
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -257,26 +253,23 @@ fun MyProductsScreen(
                             val price = tempPrice.toDoubleOrNull() ?: 0.0
                             if (tempName.isNotBlank() && price > 0) {
 
-                                // 🚀 CONEXIÓN CON TU BACKEND NODE.JS
                                 scope.launch {
                                     try {
                                         Log.d("FlowPayTest", "Guardando producto en la API: $tempName")
-
-                                        // 🔥 CAMBIO CLAVE: Se usó "precio_venta" en lugar de "precio"
-                                        // para acoplarse al cambio que hicimos en el RetrofitClient.
                                         val productReq = ProductRequest(
-                                            usuario_id = 5,
+                                            usuario_id = currentUserId,
                                             nombre = tempName.trim(),
                                             precio_venta = price
                                         )
 
                                         val respuesta = RetrofitClient.apiService.crearProducto(productReq)
 
-                                        if (respuesta.isSuccessful) {
-                                            Log.d("FlowPayTest", "✅ Producto registrado con éxito en MySQL")
+                                        if (respuesta.isSuccessful && respuesta.body() != null) {
+                                            val realId = respuesta.body()?.id ?: respuesta.body()?.producto_id ?: 0
+                                            Log.d("FlowPayTest", "✅ Producto registrado con éxito en MySQL con ID real: $realId")
                                             Toast.makeText(context, "¡Producto guardado exitosamente!", Toast.LENGTH_SHORT).show()
 
-                                            onAddProductClick(tempName, price, selectedImageUri?.toString())
+                                            onAddProductClick(realId, tempName, price, selectedImageUri?.toString())
                                             showAddDialog = false
                                         } else {
                                             val errorMsg = respuesta.errorBody()?.string()

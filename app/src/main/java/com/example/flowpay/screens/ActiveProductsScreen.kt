@@ -2,14 +2,12 @@ package com.example.flowpay.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -24,7 +22,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flowpay.Product
@@ -32,7 +29,9 @@ import com.example.flowpay.Product
 @SuppressLint("DefaultLocale")
 @Composable
 fun ActiveProductsScreen(
+    userId: Int,
     products: List<Product>,
+    onRefreshProducts: (Int) -> Unit,
     onNavigateBack: () -> Unit,
     onContinue: (List<String>) -> Unit,
     modifier: Modifier = Modifier
@@ -45,46 +44,95 @@ fun ActiveProductsScreen(
 
     val selectedProducts = remember { mutableStateListOf<String>() }
 
+    LaunchedEffect(userId) {
+        if (products.isEmpty()) {
+            onRefreshProducts(userId)
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize().background(backgroundColor)) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            drawCircle(brush = Brush.radialGradient(listOf(primaryGreen.copy(alpha = 0.1f), Color.Transparent), center = Offset(size.width * 0.8f, size.height * 0.2f), radius = size.width * 0.5f))
+            drawCircle(
+                brush = Brush.radialGradient(
+                    listOf(primaryGreen.copy(alpha = 0.1f), Color.Transparent),
+                    center = Offset(size.width * 0.8f, size.height * 0.2f),
+                    radius = size.width * 0.5f
+                )
+            )
         }
 
         Column(modifier = Modifier.fillMaxSize().systemBarsPadding().padding(24.dp)) {
-            // Header
             IconButton(onClick = onNavigateBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás", tint = whiteText)
             }
 
-            Text("¿Qué vas a vender hoy?", color = whiteText, fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 16.dp))
+            Text(
+                "¿Qué vas a vender hoy?",
+                color = whiteText,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
 
-            // Lista de productos
-            Column(
-                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                products.forEach { product ->
-                    val isChecked = selectedProducts.contains(product.name)
-                    val borderColor by animateColorAsState(if (isChecked) primaryGreen else Color.Transparent)
+            if (products.isEmpty()) {
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = primaryGreen)
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            "Cargando tus productos...",
+                            color = secondaryText,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    products.forEach { product ->
+                        val isChecked = selectedProducts.contains(product.name)
+                        val borderColor by animateColorAsState(if (isChecked) primaryGreen else Color.Transparent)
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(cardBackground)
-                            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
-                            .clickable {
-                                if (isChecked) selectedProducts.remove(product.name)
-                                else selectedProducts.add(product.name)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(cardBackground)
+                                .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+                                .clickable {
+                                    if (isChecked) selectedProducts.remove(product.name)
+                                    else selectedProducts.add(product.name)
+                                }
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = isChecked,
+                                onCheckedChange = null,
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = primaryGreen,
+                                    uncheckedColor = secondaryText
+                                )
+                            )
+                            Spacer(Modifier.width(16.dp))
+                            Column {
+                                Text(
+                                    product.name,
+                                    color = whiteText,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    "$${String.format("%.2f", product.price)}",
+                                    color = primaryGreen
+                                )
                             }
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(checked = isChecked, onCheckedChange = null)
-                        Spacer(Modifier.width(16.dp))
-                        Column {
-                            Text(product.name, color = whiteText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                            Text("$${String.format("%.2f", product.price)}", color = primaryGreen)                        }
+                        }
                     }
                 }
             }
@@ -93,10 +141,17 @@ fun ActiveProductsScreen(
                 onClick = { onContinue(selectedProducts.toList()) },
                 enabled = selectedProducts.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth().height(54.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryGreen)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = primaryGreen,
+                    disabledContainerColor = cardBackground
+                )
             ) {
                 Text("Continuar", fontWeight = FontWeight.Bold)
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.padding(start = 8.dp))
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowForward,
+                    null,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
             }
         }
     }

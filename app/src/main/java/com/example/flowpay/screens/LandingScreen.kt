@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,11 +40,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton // 👈 IMPORT CORREGIDO QUE CAUSABA EL ERROR EN MAINACTIVITY
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,9 +67,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flowpay.R
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+
 @Composable
 fun LandingScreen(
     onNavigateToLogin: () -> Unit,
@@ -216,7 +218,6 @@ fun LandingScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-
                         Image(
                             painter = painterResource(id = R.drawable.logo_flowpay),
                             contentDescription = "Logo de FlowPay",
@@ -233,6 +234,19 @@ fun LandingScreen(
                         )
                     }
 
+                    // Botón para ir al login desde la esquina superior
+                    TextButton(
+                        onClick = onNavigateToLogin,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.textButtonColors(contentColor = primaryGreen),
+                        modifier = Modifier.testTag("iniciar_sesion_top_button")
+                    ) {
+                        Text(
+                            text = "Iniciar sesión",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 
@@ -524,12 +538,12 @@ fun LandingScreen(
                                 fontSize = 15.sp
                             )
                         }
-                        }
                     }
                 }
             }
         }
     }
+}
 
 @Composable
 fun GlassCard(
@@ -575,7 +589,6 @@ fun GlassCard(
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
-
 
             Text(
                 text = description,

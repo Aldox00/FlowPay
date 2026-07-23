@@ -1,6 +1,6 @@
 package com.example.flowpay.screens
 
-import android.util.Log // 👈 IMPORTADO
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,7 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope // 👈 IMPORTADO
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,9 +55,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.flowpay.ProductRequest // 👈 IMPORTADO
-import com.example.flowpay.RetrofitClient // 👈 IMPORTADO
-import kotlinx.coroutines.launch // 👈 IMPORTADO
+import com.example.flowpay.ProductRequest
+import com.example.flowpay.RetrofitClient
+import kotlinx.coroutines.launch
 
 fun Modifier.dashedBorder(
     width: Dp,
@@ -92,8 +91,9 @@ fun Modifier.dashedBorder(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InitialSetupScreen(
+    currentUserId: Int = 15,
     onNavigateBack: () -> Unit,
-    onContinue: (p1Name: String, p1Price: String, p2Name: String, p2Price: String) -> Unit,
+    onContinue: (p1Id: Int, p1Name: String, p1Price: String, p2Id: Int, p2Name: String, p2Price: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -255,10 +255,10 @@ fun InitialSetupScreen(
                     } else {
                         scope.launch {
                             try {
-                                Log.d("FlowPayTest", "Enviando configuración de productos iniciales...")
+                                Log.d("FlowPayTest", "Enviando configuración de productos iniciales para usuario ID: $currentUserId...")
 
                                 val req1 = ProductRequest(
-                                    usuario_id = 5,
+                                    usuario_id = currentUserId,
                                     nombre = product1Name.trim(),
                                     precio_venta = p1PriceDouble
                                 )
@@ -266,22 +266,25 @@ fun InitialSetupScreen(
 
                                 if (res1.isSuccessful) {
                                     Log.d("FlowPayTest", "✅ Producto 1 guardado correctamente.")
+                                    val p1IdReal = res1.body()?.id ?: 0
 
+                                    var p2IdReal = 0
                                     val p2PriceDouble = product2Price.toDoubleOrNull() ?: 0.0
                                     if (product2Name.isNotBlank() && p2PriceDouble > 0) {
                                         val req2 = ProductRequest(
-                                            usuario_id = 5,
+                                            usuario_id = currentUserId,
                                             nombre = product2Name.trim(),
                                             precio_venta = p2PriceDouble
                                         )
                                         val res2 = RetrofitClient.apiService.crearProducto(req2)
                                         if (res2.isSuccessful) {
                                             Log.d("FlowPayTest", "✅ Producto 2 guardado correctamente.")
+                                            p2IdReal = res2.body()?.id ?: 0
                                         }
                                     }
 
                                     Toast.makeText(context, "¡Catálogo inicial guardado con éxito!", Toast.LENGTH_SHORT).show()
-                                    onContinue(product1Name, product1Price, product2Name, product2Price)
+                                    onContinue(p1IdReal, product1Name, product1Price, p2IdReal, product2Name, product2Price)
                                 } else {
                                     Log.e("FlowPayTest", "❌ Error del servidor: ${res1.errorBody()?.string()}")
                                     Toast.makeText(context, "El servidor rechazó los productos", Toast.LENGTH_SHORT).show()
