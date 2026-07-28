@@ -1,5 +1,7 @@
-- [x] Update `EncuestaRequest` in `RetrofitClient.kt`
-- [x] Update `MainActivity.kt` navigation and automatic survey call
-- [x] Update `CloseDayScreen.kt` to pass user ID and new fields
-- [x] Implement API call in `SurveyScreen.kt`
-- [x] Verify changes with logs
+- [x] Add `JornadaHistorialResponse` and API call to `RetrofitClient.kt`
+- [x] Implement `fetchUserHistoryFromBackend` in `MainActivity.kt`
+- [x] Call history fetch after successful login in `MainActivity.kt`
+- [x] Update filtering logic in `HistoryScreen.kt`
+- [x] Restore Survey Lock Overlay in `HistoryScreen.kt`
+- [x] Sync Survey Status from Backend in `MainActivity.kt`
+- [x] Verify with logs and manual check

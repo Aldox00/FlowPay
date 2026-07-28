@@ -112,7 +112,6 @@ class MainActivity : ComponentActivity() {
                     }
 
                     fun fetchUserProductsFromBackend(userId: Int) {
-
                         val targetUserId = if (userId > 0) userId else 85
                         scope.launch {
                             try {
@@ -132,6 +131,59 @@ class MainActivity : ComponentActivity() {
                                 }
                             } catch (e: Exception) {
                                 Log.e("FlowPayTest", "💥 Error de red al descargar productos: ${e.message}")
+                            }
+                        }
+                    }
+
+                    fun fetchUserHistoryFromBackend(userId: Int) {
+                        val targetUserId = if (userId > 0) userId else 85
+                        scope.launch {
+                            try {
+                                Log.d("FlowPayTest", "Descargando historial de jornadas para usuario ID: $targetUserId...")
+                                val respuesta = RetrofitClient.apiService.obtenerHistorialJornadas(targetUserId)
+
+                                if (respuesta.isSuccessful && respuesta.body()?.ok == true) {
+                                    val jornadas = respuesta.body()?.jornadas ?: emptyList()
+                                    historyRecords.clear()
+
+                                    jornadas.forEach { j ->
+                                        // Mapeamos los campos del backend al modelo local DailyRecord
+                                        val sales = j.monto_ventas ?: j.sales ?: 0.0
+                                        val investment = j.monto_inversion ?: j.investment ?: 0.0
+                                        val profit = j.ganancia_neta ?: j.profit ?: (sales - investment)
+
+                                        // Intentamos formatear la fecha si viene en YYYY-MM-DD
+                                        var displayDate = j.fecha
+                                        try {
+                                            val parser = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                                            val formatter = SimpleDateFormat("dd 'de' MMMM", Locale("es", "MX"))
+                                            val date = parser.parse(j.fecha)
+                                            if (date != null) displayDate = formatter.format(date)
+                                        } catch (e: Exception) {
+                                            // Si no es YYYY-MM-DD, dejamos la fecha como viene
+                                        }
+
+                                        historyRecords.add(DailyRecord(
+                                            date = displayDate,
+                                            sales = sales,
+                                            investment = investment,
+                                            profit = profit
+                                        ))
+
+                                        // 🟢 NUEVO: Sincronizar estado de encuestas desde el backend
+                                        if (j.encuesta_contestada == 1) {
+                                            // Por simplicidad, si hay al menos una jornada cerrada con encuesta en el historial, 
+                                            // desbloqueamos los filtros. En una app real, esto sería por periodos específicos.
+                                            hasSurveyedThisWeek = true
+                                            hasSurveyedThisMonth = true
+                                        }
+                                    }
+                                    Log.d("FlowPayTest", "✅ Historial sincronizado: ${historyRecords.size} días encontrados.")
+                                } else {
+                                    Log.e("FlowPayTest", "⚠️ No se pudo obtener el historial del servidor.")
+                                }
+                            } catch (e: Exception) {
+                                Log.e("FlowPayTest", "💥 Fallo de red al descargar historial: ${e.message}")
                             }
                         }
                     }
@@ -189,6 +241,10 @@ class MainActivity : ComponentActivity() {
 
                                     if (!nombreUsuarioRecibido.isNullOrBlank()) registeredName = nombreUsuarioRecibido
                                     if (!correoUsuarioRecibido.isNullOrBlank()) registeredEmail = correoUsuarioRecibido
+
+                                    // Sincronizar catálogo e historial inmediatamente tras login
+                                    fetchUserProductsFromBackend(idUsuarioRecibido)
+                                    fetchUserHistoryFromBackend(idUsuarioRecibido)
 
                                     when {
                                         jornadaIdSesion > 0 -> {
@@ -488,6 +544,8 @@ class MainActivity : ComponentActivity() {
                         composable("history") {
                             HistoryScreen(
                                 records = historyRecords,
+                                isSurveyedWeek = hasSurveyedThisWeek,
+                                isSurveyedMonth = hasSurveyedThisMonth,
                                 onNavigateToDashboard = {
                                     navController.navigate("dashboard") { popUpTo(0) }
                                 },

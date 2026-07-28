@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.History
@@ -31,9 +32,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flowpay.DailyRecord
 
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.foundation.shape.CircleShape
+
 @Composable
 fun HistoryScreen(
     records: List<DailyRecord>,
+    isSurveyedWeek: Boolean = true,
+    isSurveyedMonth: Boolean = true,
     onNavigateToDashboard: () -> Unit,
     onNavigateToProductos: () -> Unit,
     onNavigateToPerfil: () -> Unit,
@@ -42,6 +50,8 @@ fun HistoryScreen(
     modifier: Modifier = Modifier
 ) {
     var selectedFilter by rememberSaveable { mutableStateOf("Día") }
+
+    val isLocked = (selectedFilter == "Semana" && !isSurveyedWeek) || (selectedFilter == "Mes" && !isSurveyedMonth)
 
     val primaryGreen = Color(0x22, 0xC5, 0x5E)
     val backgroundColor = Color(0x0F, 0x17, 0x2A)
@@ -61,7 +71,12 @@ fun HistoryScreen(
             )
         }
 
-        Column(modifier = Modifier.fillMaxSize().systemBarsPadding().padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 84.dp)) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .systemBarsPadding()
+            .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 84.dp)
+            .blur(if (isLocked) 8.dp else 0.dp) // 🟢 BLUR SI ESTÁ BLOQUEADO
+        ) {
 
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp)) {
                 IconButton(onClick = onNavigateToDashboard, modifier = Modifier.offset(x = (-12).dp)) {
@@ -81,7 +96,6 @@ fun HistoryScreen(
                             .clip(RoundedCornerShape(50))
                             .background(if (isSelected) primaryGreen else Color.White.copy(alpha = 0.1f))
                             .clickable {
-                                onNavigateToSurvey(filter)
                                 selectedFilter = filter
                             }
                             .padding(horizontal = 20.dp, vertical = 8.dp)
@@ -97,8 +111,8 @@ fun HistoryScreen(
             }
 
             val recordsToShow = when (selectedFilter) {
-                "Semana" -> if (records.size >= 7) records.take(7) else emptyList()
-                "Mes" -> if (records.size >= 30) records.take(30) else emptyList()
+                "Semana" -> records.take(7)
+                "Mes" -> records.take(30)
                 else -> records
             }
 
@@ -234,6 +248,73 @@ fun HistoryScreen(
                 HistoryBottomNavItem(label = "Productos", icon = Icons.Default.Inventory2, isSelected = false, onClick = onNavigateToProductos, modifier = Modifier.weight(1f))
                 HistoryBottomNavItem(label = "Historial", icon = Icons.Default.History, isSelected = true, onClick = { }, modifier = Modifier.weight(1f))
                 HistoryBottomNavItem(label = "Perfil", icon = Icons.Default.Person, isSelected = false, onClick = onNavigateToPerfil, modifier = Modifier.weight(1f))
+            }
+        }
+
+        // 🟢 OVERLAY DE BLOQUEO (SI NO HAY ENCUESTA)
+        if (isLocked) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x0F, 0x17, 0x2A).copy(alpha = 0.4f))
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 84.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .clip(RoundedCornerShape(28.dp))
+                        .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(28.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0x1E, 0x29, 0x3B).copy(alpha = 0.95f))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(28.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape)
+                                .background(primaryGreen.copy(alpha = 0.15f))
+                                .border(1.5.dp, primaryGreen, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Lock, "Bloqueado", tint = primaryGreen, modifier = Modifier.size(24.dp))
+                        }
+
+                        Text(
+                            text = "Historial Bloqueado",
+                            color = whiteText,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Text(
+                            text = "Completa la encuesta de satisfacción para desbloquear la vista de ${selectedFilter.lowercase()}.",
+                            color = secondaryText.copy(alpha = 0.8f),
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 20.sp
+                        )
+
+                        Button(
+                            onClick = { onNavigateToSurvey(selectedFilter) },
+                            colors = ButtonDefaults.buttonColors(containerColor = primaryGreen),
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier.fillMaxWidth().height(50.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Ir a la encuesta", color = Color(0x0F, 0x17, 0x2A), fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.width(8.dp))
+                                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color(0x0F, 0x17, 0x2A), modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+                }
             }
         }
     }

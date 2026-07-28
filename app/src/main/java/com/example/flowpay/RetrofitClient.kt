@@ -78,6 +78,11 @@ interface FlowPayApiService {
 
     @POST("encuesta/registrar")
     suspend fun registrarEncuesta(@Body request: EncuestaRequest): Response<GenericEncuestaResponse>
+
+    @GET("jornada/historial/{usuario_id}")
+    suspend fun obtenerHistorialJornadas(
+        @Path("usuario_id") usuarioId: Int
+    ): Response<JornadaHistorialResponse>
 }
 
 data class LoginRequest(val correo: String, val contrasena: String)
@@ -196,4 +201,25 @@ data class GenericVentaResponse(
     val ok: Boolean,
     val msg: String?,
     val venta_id: Int?
+)
+
+data class JornadaHistorialResponse(
+    val ok: Boolean,
+    val jornadas: List<JornadaRecordResponse>?
+)
+
+data class JornadaRecordResponse(
+    val fecha: String,
+    @SerializedName("total_ventas")
+    val monto_ventas: Double? = null,
+    @SerializedName("total_inversion")
+    val monto_inversion: Double? = null,
+    @SerializedName("total_ganancia")
+    val ganancia_neta: Double? = null,
+    @SerializedName("encuesta_contestada")
+    val encuesta_contestada: Int? = null,
+    // Respaldos por si el backend usa nombres literales
+    val sales: Double? = null,
+    val investment: Double? = null,
+    val profit: Double? = null
 )

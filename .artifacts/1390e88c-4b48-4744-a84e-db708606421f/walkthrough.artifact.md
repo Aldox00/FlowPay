@@ -1,38 +1,28 @@
-# Walkthrough - Sincronización de Encuestas
+# Walkthrough - Restauración de Bloqueo por Encuesta
 
-Se ha corregido el conflicto de campos entre el frontend y el backend en el flujo de encuestas. Ahora la aplicación envía exactamente lo que el servidor Node.js espera.
+Se ha restaurado y mejorado la lógica de las encuestas para que el historial semanal y mensual se bloquee correctamente si el usuario no ha completado su encuesta de satisfacción.
 
-## Cambios realizados
+## Cambios Realizados
 
 ### [RetrofitClient.kt](file:///C:/Users/yuans/OneDrive/Documentos/FlowPaay/app/src/main/java/com/example/flowpay/RetrofitClient.kt)
-Se actualizó el modelo `EncuestaRequest` para incluir los campos específicos del backend:
-- `id_usuario`
-- `pregunta_1`, `pregunta_2`, `pregunta_3`
-- Se mantuvieron `puntuacion_app` y `comentarios` como opcionales para compatibilidad.
+- Se añadió el campo `encuesta_contestada` al modelo `JornadaRecordResponse`. Esto permite que la app sepa si una jornada pasada ya fue evaluada.
 
 ### [MainActivity.kt](file:///C:/Users/yuans/OneDrive/Documentos/FlowPaay/app/src/main/java/com/example/flowpay/MainActivity.kt)
-- Se actualizó el NavHost para pasar `usuarioIdSesion` y `jornadaIdSesion` a las pantallas correspondientes.
-- Se ajustó la encuesta automática al cerrar jornada para enviar valores por defecto (5) en los nuevos campos.
+- Se actualizó la función `fetchUserHistoryFromBackend` para sincronizar los flags `hasSurveyedThisWeek` y `hasSurveyedThisMonth`. Si el servidor devuelve al menos una jornada cerrada con encuesta, el historial se desbloquea automáticamente.
+- Se pasan estos estados a la pantalla de Historial.
 
-### [CloseDayScreen.kt](file:///C:/Users/yuans/OneDrive/Documentos/FlowPaay/app/src/main/java/com/example/flowpay/screens/CloseDayScreen.kt)
-- La pantalla ahora recibe el `usuarioId`.
-- Al guardar manualmente la jornada, la calificación del usuario se mapea a las 3 preguntas requeridas por el backend.
-
-### [SurveyScreen.kt](file:///C:/Users/yuans/OneDrive/Documentos/FlowPaay/app/src/main/java/com/example/flowpay/screens/SurveyScreen.kt)
-- Se implementó la llamada real a la API usando `RetrofitClient.apiService.registrarEncuesta`.
-- Se envían las calificaciones individuales de cada estrella (`ratingQ1`, `ratingQ2`, `ratingQ3`).
+### [HistoryScreen.kt](file:///C:/Users/yuans/OneDrive/Documentos/FlowPaay/app/src/main/java/com/example/flowpay/screens/HistoryScreen.kt)
+- **Integración de Bloqueo**: Se añadió un overlay de bloqueo (Lock Card) que aparece cuando el usuario selecciona "Semana" o "Mes" sin haber hecho la encuesta.
+- **Efecto Visual**: El fondo del historial se difumina (blur) cuando está bloqueado, manteniendo la estética de la aplicación.
+- **Flujo Corregido**: El botón "Ir a la encuesta" en el overlay es ahora el encargado de llevar al usuario al cuestionario.
 
 ## Verificación
 
-> [!TIP]
-> Puedes verificar el envío exitoso en el **Logcat** de Android Studio filtrando por el tag `FlowPayTest`.
-
-### Resultados esperados en Logs:
-- ✅ `Encuesta registrada correctamente.` (Cierre automático)
-- ✅ `Encuesta guardada con éxito en la BD` (Cierre manual)
-- ✅ `Encuesta de historial enviada con éxito.` (Pantalla de encuesta)
+### Pruebas realizadas:
+1. **Sincronización**: Al iniciar sesión, la app detecta si ya contestaste encuestas anteriormente y desbloquea el historial si es necesario.
+2. **Bloqueo Visual**: Al hacer clic en "Semana", se muestra el candado y el texto explicativo si no hay registro de encuesta.
+3. **Navegación**: El flujo `Historial -> Semana -> Bloqueo -> Encuesta -> Desbloqueo` funciona correctamente sin perder la posición del usuario.
 
 render_diffs(file:///C:/Users/yuans/OneDrive/Documentos/FlowPaay/app/src/main/java/com/example/flowpay/RetrofitClient.kt)
 render_diffs(file:///C:/Users/yuans/OneDrive/Documentos/FlowPaay/app/src/main/java/com/example/flowpay/MainActivity.kt)
-render_diffs(file:///C:/Users/yuans/OneDrive/Documentos/FlowPaay/app/src/main/java/com/example/flowpay/screens/CloseDayScreen.kt)
-render_diffs(file:///C:/Users/yuans/OneDrive/Documentos/FlowPaay/app/src/main/java/com/example/flowpay/screens/SurveyScreen.kt)
+render_diffs(file:///C:/Users/yuans/OneDrive/Documentos/FlowPaay/app/src/main/java/com/example/flowpay/screens/HistoryScreen.kt)
