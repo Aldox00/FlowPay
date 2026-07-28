@@ -154,8 +154,12 @@ data class GenericJornadaResponse(
 
 data class EncuestaRequest(
     val jornada_id: Int,
-    val puntuacion_app: Int,
-    val comentarios: String?
+    val id_usuario: Int? = null,
+    val pregunta_1: Int? = null,
+    val pregunta_2: Int? = null,
+    val pregunta_3: Int? = null,
+    val puntuacion_app: Int? = null, // Mantenemos como respaldo
+    val comentarios: String? = null
 )
 
 data class GenericEncuestaResponse(

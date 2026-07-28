@@ -1,0 +1,5 @@
+- [x] Update `EncuestaRequest` in `RetrofitClient.kt`
+- [x] Update `MainActivity.kt` navigation and automatic survey call
+- [x] Update `CloseDayScreen.kt` to pass user ID and new fields
+- [x] Implement API call in `SurveyScreen.kt`
+- [x] Verify changes with logs

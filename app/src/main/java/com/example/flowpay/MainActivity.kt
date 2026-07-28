@@ -412,6 +412,7 @@ class MainActivity : ComponentActivity() {
 
                             CloseDayScreen(
                                 jornadaId = jornadaIdSesion,
+                                usuarioId = usuarioIdSesion,
                                 totalSales = totalSalesToday,
                                 totalInvestment = totalInvestmentToday,
                                 netProfit = totalProfitToday,
@@ -424,6 +425,10 @@ class MainActivity : ComponentActivity() {
                                             val respuestaEncuesta = RetrofitClient.apiService.registrarEncuesta(
                                                 EncuestaRequest(
                                                     jornada_id = jornadaIdSesion,
+                                                    id_usuario = usuarioIdSesion,
+                                                    pregunta_1 = 5,
+                                                    pregunta_2 = 5,
+                                                    pregunta_3 = 5,
                                                     puntuacion_app = 5,
                                                     comentarios = "Jornada cerrada exitosamente"
                                                 )
@@ -511,6 +516,8 @@ class MainActivity : ComponentActivity() {
 
                         composable("survey") {
                             SurveyScreen(
+                                jornadaId = jornadaIdSesion,
+                                usuarioId = usuarioIdSesion,
                                 onSurveySubmitted = {
                                     when (pendingFilterAfterSurvey) {
                                         "Semana" -> hasSurveyedThisWeek = true

@@ -95,7 +95,6 @@ fun ProductsScreen(
                             .clip(RoundedCornerShape(16.dp))
                             .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
                             .clickable {
-                                // 🟢 ENVÍA EL ID REAL DIRECTAMENTE SIN BUSCAR POR NOMBRE
                                 onNavigateToSelectPayment(product.id, product.name, product.price.toString())
                             },
                         colors = CardDefaults.cardColors(containerColor = cardBackground)

@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "674577932559-m2vd303dejuvc69cutib8rie3d18oqu8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flowpay",
+            "certificate_hash": "b0b8dbea689093b12eb4f4d75767743832e91a79"
+          }
+        },
+        {
           "client_id": "674577932559-kksvij3am1g84airvmfvitddihd0psit.apps.googleusercontent.com",
           "client_type": 3
         }

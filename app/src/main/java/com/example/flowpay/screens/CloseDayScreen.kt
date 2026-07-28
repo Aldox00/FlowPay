@@ -39,6 +39,7 @@ import java.util.Locale
 @Composable
 fun CloseDayScreen(
     jornadaId: Int,
+    usuarioId: Int = 0,
     totalSales: Double,
     totalInvestment: Double,
     netProfit: Double,
@@ -224,6 +225,10 @@ fun CloseDayScreen(
                         try {
                             val encuestaRequest = EncuestaRequest(
                                 jornada_id = jornadaId,
+                                id_usuario = usuarioId,
+                                pregunta_1 = puntuacionApp,
+                                pregunta_2 = puntuacionApp,
+                                pregunta_3 = puntuacionApp,
                                 puntuacion_app = puntuacionApp,
                                 comentarios = comentariosApp
                             )

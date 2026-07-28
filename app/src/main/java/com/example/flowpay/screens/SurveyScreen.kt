@@ -1,5 +1,6 @@
 package com.example.flowpay.screens
 
+import kotlin.math.roundToInt
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,9 +24,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.flowpay.EncuestaRequest
+import com.example.flowpay.RetrofitClient
+import kotlinx.coroutines.launch
+
 @Composable
-fun SurveyScreen(onSurveySubmitted: () -> Unit) {
+fun SurveyScreen(
+    jornadaId: Int = 0,
+    usuarioId: Int = 0,
+    onSurveySubmitted: () -> Unit
+) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val darkBgColor = Color(0xFF0F172A)
     val cardColor = Color(0xFF1E293B)
@@ -124,8 +134,30 @@ fun SurveyScreen(onSurveySubmitted: () -> Unit) {
             Button(
                 onClick = {
                     if (ratingQ1 > 0 && ratingQ2 > 0 && ratingQ3 > 0) {
-                        Toast.makeText(context, "¡Gracias por tus respuestas!", Toast.LENGTH_SHORT).show()
-                        onSurveySubmitted()
+                        scope.launch {
+                            try {
+                                val req = EncuestaRequest(
+                                    jornada_id = jornadaId,
+                                    id_usuario = usuarioId,
+                                    pregunta_1 = ratingQ1,
+                                    pregunta_2 = ratingQ2,
+                                    pregunta_3 = ratingQ3,
+                                    puntuacion_app = ((ratingQ1 + ratingQ2 + ratingQ3) / 3.0).roundToInt(),
+                                    comentarios = "Encuesta desde Historial"
+                                )
+                                val resp = RetrofitClient.apiService.registrarEncuesta(req)
+                                if (resp.isSuccessful && resp.body()?.ok == true) {
+                                    android.util.Log.d("FlowPayTest", "✅ Encuesta de historial enviada con éxito.")
+                                } else {
+                                    android.util.Log.e("FlowPayTest", "❌ Error al enviar encuesta de historial: ${resp.errorBody()?.string()}")
+                                }
+                            } catch (e: Exception) {
+                                android.util.Log.e("FlowPayTest", "💥 Fallo de red en encuesta: ${e.message}")
+                            } finally {
+                                Toast.makeText(context, "¡Gracias por tus respuestas!", Toast.LENGTH_SHORT).show()
+                                onSurveySubmitted()
+                            }
+                        }
                     } else {
                         Toast.makeText(context, "Por favor responde todas las preguntas", Toast.LENGTH_SHORT).show()
                     }
